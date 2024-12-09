@@ -1,0 +1,120 @@
+﻿html {
+    position: relative;
+    min-height: 100%;
+}
+
+body {
+    margin-bottom: 80px;
+}
+
+/* #region Footer styles */
+.footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    font-size: 0.85em;
+}
+/* #endregion */
+
+.center {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.center-button-css-signin {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 300px;
+}
+
+.status-css-created {
+    background-color: #dc5765;
+    color: white;
+    margin: auto;
+}
+
+.status-css-requested {
+    background-color: #dcaf57;
+    color: white;
+    margin: auto;
+}
+
+.status-css-engineer {
+    background-color: #ff7414;
+    color: white;
+    text-align: center;
+}
+
+.status-css-approved {
+    background-color: #57dc7f;
+    color: white;
+    text-align: center;
+}
+
+.status-css-received {
+    background-color: #4a4a4a;
+    color: white;
+    text-align: center;
+}
+
+.status-css-installed {
+    background-color: #222222;
+    color: white;
+    text-align: center;
+}
+
+/* #region custom Kendo UI styles */
+#configure {
+    display: none;
+}
+
+.k-panelbar .k-content {
+    padding: 20px;
+}
+
+p .k-button {
+    margin: 0 15px 0 0;
+}
+
+.k-state-active .label {
+    font-size: 1em;
+}
+/* #endregion */
+
+@media (max-width: 767px) {
+    #responsive-panel {
+        transition: all linear .2s;
+    }
+
+    #configure {
+        display: block;
+        float: right;
+    }
+
+    .k-rpanel {
+        width: 100%;
+    }
+
+    .k-rpanel-expanded {
+        margin-top: 1rem;
+    }
+
+    .navbar-header {
+        width: 100%;
+    }
+
+    .footer {
+        height: 60px;
+    }
+
+    .k-menu .k-item,
+    .k-menu .k-link {
+        width: 100%;
+    }
+
+    .k-menu .k-link {
+        box-sizing: border-box;
+    }
+}

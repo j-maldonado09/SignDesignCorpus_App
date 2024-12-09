@@ -1,0 +1,98 @@
+﻿@using SignDesignCorpus
+@using SignDesign_App.ViewModels
+@model RegisterViewModel
+
+@{
+    List<MaintenanceSection> maintenanceSections = (List<MaintenanceSection>)ViewData["maintenanceSections"];
+}
+
+<br /><br /><br />
+<div class="row">
+    <div class="col-sm-12 col-md-6 offset-md-3 col-lg-6 offset-lg-3 col-xl-6 offset-xl-3">
+        <h3>Register User</h3>
+        <br/>
+        <form method="post">
+            <div class="form-group">
+                <label asp-for="FirstName"></label>
+                <input asp-for="FirstName" class="form-control" />
+                @*<span asp-validation-for="Email" class="text-danger"></span>*@
+            </div>
+            <br />
+
+            <div class="form-group">
+                <label asp-for="LastName"></label>
+                <input asp-for="LastName" class="form-control" />
+                @*<span asp-validation-for="Email" class="text-danger"></span>*@
+            </div>
+            <br />
+
+            @*<div class="form-group">
+                <label asp-for="OrganizationType"></label>
+                <input asp-for="OrganizationType" class="form-control" />
+            </div>
+            <br />*@
+
+            <div class="form-group">
+                <label asp-for="OrganizationType"></label>
+                <select asp-for="OrganizationType" name="OrganizationType" class="form-select" id="OrganizationType" onchange="selectDistrictOption()" >
+                    <option value="MaintenanceSection">Maintenance Section</option>
+                    <option value="District">District</option>
+                </select>
+                @*<span asp-validation-for="Email" class="text-danger"></span>*@
+            </div>
+            <br />
+            
+            <div class="form-group">
+                <label asp-for="MaintenanceSectionId"></label>
+                <select asp-for="MaintenanceSectionId" name="MaintenanceSectionId" class="form-select" id="MaintenanceSectionId" >
+                    @{
+                        if (maintenanceSections != null)
+                        {
+                            foreach (MaintenanceSection item in maintenanceSections)
+                            {
+                                <option value=@item.Id>@item.Name</option>
+                            }   
+                        }
+                    }
+                </select>
+                @*<span asp-validation-for="Email" class="text-danger"></span>*@
+            </div>
+            <br />
+
+            <div class="form-group">
+                <label asp-for="Email"></label>
+                <input asp-for="Email" class="form-control" />
+                @*<span asp-validation-for="Email" class="text-danger"></span>*@
+            </div>
+            <br />
+
+            <div class="form-group">
+                <label asp-for="Password"></label>
+                <input asp-for="Password" class="form-control" />
+                @*<span asp-validation-for="Password" class="text-danger"></span>*@
+            </div>
+            <br />
+
+            <div class="form-group">
+                <label asp-for="ConfirmPassword"></label>
+                <input asp-for="ConfirmPassword" class="form-control" />
+                @*<span asp-validation-for="ConfirmPassword" class="text-danger"></span>*@
+            </div>
+            
+            <br />
+            <div asp-validation-summary="All" class="text-danger"></div>
+        
+            <br />
+            <button type="submit" class="btn btn-primary center-button-css-signin">Register</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    function selectDistrictOption(){
+        if ($('#OrganizationType').val() == "District")
+            $('#MaintenanceSectionId').val(-1).prop('disabled', true);
+        else
+            $('#MaintenanceSectionId').prop('disabled', false).prop('selectedIndex', 0);
+    }
+</script>

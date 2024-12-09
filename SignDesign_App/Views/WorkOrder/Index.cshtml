@@ -1,0 +1,1169 @@
+﻿@using SignDesignCorpus;
+@using SignDesignCorpus.ViewModels;
+@using SignDesign_App.Models;
+@using Microsoft.AspNetCore.Identity;
+@model IEnumerable<WorkOrderViewModel>
+@inject UserManager<ApplicationUser> userManager;
+
+@{
+	var currentUser = await userManager.GetUserAsync(User);
+    var roles = userManager.GetRolesAsync(currentUser).Result;
+	string currentUserRole = roles[0];
+}
+
+<h1>
+	Work Orders
+</h1>
+
+<kendo-grid name="workOrderGrid" on-edit="onEdit" on-cancel="onPopupClose" on-data-bound="onWorkOrderDataBound" height="750">
+    <datasource type="DataSourceTagHelperType.Ajax" page-size="50" server-operation="true" on-error="fnShowError">
+        <transport>
+            @*<create url="WorkOrder/Create" />*@
+            <read url="WorkOrder/Read" />
+            @*<update url="WorkOrder/Update" />*@
+            <destroy url="WorkOrder/Delete" />
+        </transport>
+        <schema>
+            <model id="Id">
+                <fields>
+                    <field name="Id" type="number" editable="false"></field>
+                    <field name="Number" type="String"></field>
+                    <field name="MaterialRequestedFromId" type="number" editable="false"></field>
+                    <field name="MaterialRequestedFromName" type="String"></field>
+                    <field name="MaterialRequestedById" type="number" editable="false"></field>
+                    <field name="MaterialRequestedByName" type="String"></field>
+                    <field name="Status" type="String"></field>
+                    <field name="StatusDate" type="Date"></field>
+                </fields>
+            </model>
+        </schema>
+    </datasource>
+    <editable mode="popup" template-id="popup-editor"/>
+    <groupable enabled="true" />
+    <sortable enabled="true" />
+    <filterable enabled="true" />
+    <pageable button-count="8" refresh="true" page-sizes="new int[] { 10, 25, 50, 75 }">
+    </pageable>
+    <toolbar> 
+        <toolbar-button name="create" text="New Sign Request"></toolbar-button> 
+    </toolbar>
+    <columns>
+        <column field="Id" title="Id" hidden=true/>
+        @*<column field="Number" title="Number" />*@
+        <column field="Number" template="#=template(data)#" title="Number" width="180"/>
+        <column field="MaterialRequestedFromId" title="Requested From" hidden=true/>
+        <column field="MaterialRequestedFromName" title="Requested From" width="200"/>
+        <column field="MaterialRequestedById" title="Requested By" hidden=true/>
+        <column field="MaterialRequestedByName" title="Requested By" />
+        <column name="statusColumn" field="Status" title="Status" width="180"/>
+        <column field="StatusDate" title="Date" format="{0:yyyy/MM/dd}" width="180"/>
+        <column width="110">
+            <commands>
+                <column-command text=" " name="edit"></column-command>
+                <column-command text=" " name="destroy"></column-command>
+            </commands>
+        </column>
+    </columns>
+</kendo-grid>
+
+@* Dialog used to display messages (success, error) when performing CRUD operations on work order records *@
+<div id="messageDialog">
+</div>
+
+@* Window used to display the images/attachments from the kendo upload control *@
+<kendo-window id="imageWindow" name="imageWindow"
+    title="" 
+    width="20%"
+    height="auto"
+    visible="false"
+    draggable="false"
+    resizable="false"
+    modal="true"
+    position-top="10%">
+</kendo-window>
+
+<script>
+    // variables ******************************************************************************************************************************************
+    var cloneCount = 0;         // current number of sign segments
+    var cloneCountMax = 10;     // sets the updated maximum value of sign segments (this increases when sign segments are deleted)
+    const cloneCountLimit = 10; // limit of sign containers accepted by the application
+    var workOrderId = 0;
+    var isNew;
+    var closePopup = false;
+
+    // Sets that the popup will be closed. Used by grid's on-close event ***********************************************************************************
+    function onPopupClose(e){
+        closePopup = true;
+        RefreshGrid();
+    }
+
+    // Set the work order number by merging the maintenance section number and the work order id *************************************************************
+    function template(data) {
+        return `<div> ${ data.MaterialRequestedByNumber}-${ data.Id} <div/>`
+    }
+
+    // Set template for 'Status' column in work order grid ***************************************************************************************************
+    function onWorkOrderDataBound(e){
+        var grid = this;
+        grid.table.find("tr").each(function () {
+            var dataItem = grid.dataItem(this);
+
+            $("td:contains('CREATED')").addClass("status-css-created");
+            $("td:contains('REQUESTED')").addClass("status-css-requested");
+            $("td:contains('AREA ENGINEER')").addClass("status-css-engineer");
+            $("td:contains('APPROVED')").addClass("status-css-approved");
+            $("td:contains('RECEIVED')").addClass("status-css-received");
+            $("td:contains('INSTALLED')").addClass("status-css-installed");
+
+            // Check if edit button will be disabled
+            // Column 6 is for status and column 8 is for edit and delete buttons
+            if (this.cells.item(6).innerHTML == "CREATED") {
+                if ("@currentUserRole" == "ENGINEER" || "@currentUserRole" == "ADMIN")
+                    this.cells.item(8).getElementsByClassName("k-grid-edit")[0].setAttribute("disabled", true);
+                if ("@currentUserRole" == "ADMIN")
+                    this.cells.item(8).getElementsByClassName("k-grid-delete")[0].setAttribute("disabled", true);
+            }
+            else if (this.cells.item(6).innerHTML == "AREA ENGINEER") {
+                if ("@currentUserRole" == "USER" || "@currentUserRole" == "ADMIN") {
+                    this.cells.item(8).getElementsByClassName("k-grid-edit")[0].setAttribute("disabled", true);
+                    this.cells.item(8).getElementsByClassName("k-grid-delete")[0].setAttribute("disabled", true);
+                }
+            }
+            else if (this.cells.item(6).innerHTML == "REQUESTED") {
+                if ("@currentUserRole" == "USER" || "@currentUserRole" == "SUPERVISOR" || "@currentUserRole" == "ENGINEER")
+                    this.cells.item(8).getElementsByClassName("k-grid-edit")[0].setAttribute("disabled", true);
+                if ("@currentUserRole" == "SUPERVISOR")
+                        this.cells.item(8).getElementsByClassName("k-grid-delete")[0].setAttribute("disabled", true);
+            }
+            else if (this.cells.item(6).innerHTML == "APPROVED" || this.cells.item(6).innerHTML == "RECEIVED" || this.cells.item(6).innerHTML == "INSTALLED") {
+                if ("@currentUserRole" == "ENGINEER")
+                    this.cells.item(8).getElementsByClassName("k-grid-edit")[0].setAttribute("disabled", true);
+                if ("@currentUserRole" == "USER" || "@currentUserRole" == "SUPERVISOR" || "@currentUserRole" == "ENGINEER")
+                    this.cells.item(8).getElementsByClassName("k-grid-delete")[0].setAttribute("disabled", true);
+            }
+
+
+            if ("@currentUserRole" == "USER" || "@currentUserRole" == "ENGINEER")
+                    $(".k-grid-delete").attr("disabled", true);
+
+            kendo.bind($(this), dataItem);
+        });
+    }
+
+    // Function that opens the popup window to create or edit the work orders *********************************************************************************
+    function onEdit(e) {
+        var editWindow = this.editable.element.data("kendoWindow");
+        editWindow.setOptions({ title: "", height: "90%", width: "90%", resizable: false });
+        editWindow.center();
+        editWindow.bind("close", onEditWindowClose);
+        cloneCount = 0;
+        cloneCountMax = cloneCountLimit;
+
+        $(".k-grid-update").off().on("click", SaveOrUpdate);
+        $(".k-grid-cancel").hide();
+        //$(".k-button.k-button-md.k-rounded-md.k-button-flat.k-button-flat-base.k-icon-button.k-window-action").removeClass("k-button-flat k-button-flat-base").addClass("k-button-solid k-button-solid-error");
+        //$(".k-grid-cancel").on("click", function (e) {
+        //    closePopup = true;
+        //    alert("close button: " + closePopup);
+        //});
+
+        if (!e.model.isNew()) {
+            isNew = false;
+            workOrderId = e.model.get('Id');
+            $.ajax({
+                type: 'GET',
+                url: '/WorkOrder/ReadWorkOrders',
+                contentType: 'application/json; charset=utf-8',
+                data: { id: e.model.get("Id") },
+                success: function (result) {
+                    LoadWorkOrderInfo(result);
+                },
+                error: function (xhr, textStatus, errorThrown) {
+                    fnShowMessage(xhr.responseText, "Error");
+                },
+                complete: function () {
+                    initializeControls();
+                }
+            })
+        }
+        else {
+            isNew = true;
+            addSegment(null, null, null);
+
+            @{
+                if (currentUser.MaintenanceSectionId.ToString().Length == 0)
+                    currentUser.MaintenanceSectionId = -1;
+            }
+
+            var currentMaintSection = @currentUser.MaintenanceSectionId == -1 ? null : @currentUser.MaintenanceSectionId;
+
+            $('span:contains(Update)').text('Create');
+            $.ajax({
+                type: 'GET',
+                url: '/WorkOrder/ReadMaintenanceSectionParameters',
+                contentType: 'application/json; charset=utf-8',
+                data: { id: currentMaintSection },
+                success: function (result) {
+                    LoadMaintenanceSectionInfo(result);
+                },
+                error: function (xhr, textStatus, errorThrown) {
+                    fnShowMessage(xhr.responseText, "Error");
+                },
+                complete: function () {
+                    initializeControls();
+                }
+            })
+        }
+    }
+
+    // ****************************************************************************************************************************************************
+    function initializeControls() {
+        if("@currentUserRole" == "ADMIN") {
+            $('<button type="button" class="k-button k-button-md k-button-rectangle k-rounded-md k-button-solid k-button-solid-dark" onclick="CreatePDF()"><span class="k-icon k-i-file-pdf k-button-icon"></span><span class="k-button-text">Generate PDF</span></button>').insertAfter(".k-grid-update");
+            $('#approvedByAreaEngineer').data("kendoDropDownList").enable(false);
+            $('#approvedByAreaEngineerDate').data("kendoDatePicker").enable(false);
+        }
+        else if("@currentUserRole" == "SUPERVISOR") {
+            $('<button type="button" class="k-button k-button-md k-button-rectangle k-rounded-md k-button-solid k-button-solid-dark" onclick="notifyButton()"><span class="k-icon k-i-bell k-button-icon"></span><span class="k-button-text">Notify</span></button>').insertAfter(".k-grid-update");
+            $('#approvedByAreaEngineer').data("kendoDropDownList").enable(false);
+            $('#approvedByAreaEngineerDate').data("kendoDatePicker").enable(false);
+            $('#approvedByDistrict').data("kendoDropDownList").enable(false);
+            $('#approvedByDistrictDate').data("kendoDatePicker").enable(false);
+        }
+        else if ("@currentUserRole" == "ENGINEER") {
+            $('#requestedByMaintenance').data("kendoDropDownList").enable(false);
+            $('#requestedByMaintenanceDate').data("kendoDatePicker").enable(false);
+            $('#approvedByMaintenance').data("kendoDropDownList").enable(false);
+            $('#approvedByMaintenanceDate').data("kendoDatePicker").enable(false);
+            $('#approvedByDistrict').data("kendoDropDownList").enable(false);
+            $('#approvedByDistrictDate').data("kendoDatePicker").enable(false);
+            
+        }
+        else if("@currentUserRole" == "USER") {
+            $('<button type="button" class="k-button k-button-md k-button-rectangle k-rounded-md k-button-solid k-button-solid-dark" onclick="notifyButton()"><span class="k-icon k-i-bell k-button-icon"></span><span class="k-button-text">Notify</span></button>').insertAfter(".k-grid-update");
+            $('#approvedByMaintenance').data("kendoDropDownList").enable(false);
+            $('#approvedByMaintenanceDate').data("kendoDatePicker").enable(false);
+            $('#approvedByAreaEngineer').data("kendoDropDownList").enable(false);
+            $('#approvedByAreaEngineerDate').data("kendoDatePicker").enable(false);
+            $('#approvedByDistrict').data("kendoDropDownList").enable(false);
+            $('#approvedByDistrictDate').data("kendoDatePicker").enable(false);
+        }
+
+        if ($('#approvedByDistrict').data("kendoDropDownList").value().toString().length == 0) {
+            $('#signReceivedOnDate').data("kendoDatePicker").enable(false);
+            $('#signInstalledOnDate').data("kendoDatePicker").enable(false);
+        }
+    }
+
+
+    // Method that sets if the popup will get closed or not when clicking the update and close buttons **********************************************
+    function onEditWindowClose(e){
+        //alert("on edit window close: " + closePopup);
+        if (!closePopup){
+            e.preventDefault();
+            closePopup = true;
+        }
+    }
+
+    // Sends email when clicking on the notify button ************************************************************************************************
+    function notifyButton(){
+        $.ajax({
+            type: 'GET',
+            url: '/WorkOrder/SendMail',
+            contentType: 'application/json; charset=utf-8',
+            success: function (result) {
+                fnShowMessage("Notification sent", "Success");
+            },
+            error: function (xhr, textStatus, errorThrown) {
+                fnShowMessage(xhr.responseText, "Error");
+            }
+        });
+    }
+
+    // Sets behaviour of popup fro a new or an existing work order **************************************************************************************
+    function SaveOrUpdate() {
+        //closePopup = false;
+        if (isNew){
+            closePopup =  true;
+            SaveWorkOrder();
+        }
+        else{
+            closePopup = false;
+            UpdateWorkOrder();
+        }
+    }
+
+    // ************************************************************************************************************************************************
+    function LoadWorkOrderInfo(result) {
+        var jsonResult = jQuery.parseJSON(result);
+        var dropdownVal;
+
+        dropdownVal = jsonResult[0].MaterialRequestedFromId;
+        $("#requestedFrom").data("kendoDropDownList").value(dropdownVal);
+
+        dropdownVal = jsonResult[0].MaterialRequestedById;
+        $("#requestedBy").data("kendoDropDownList").value(dropdownVal);
+
+        dropdownVal = jsonResult[0].FY;
+        $("#year").data("kendoDropDownList").value(dropdownVal);
+
+        dropdownVal = jsonResult[0].DepartmentId;
+        $("#department").data("kendoDropDownList").value(dropdownVal);
+
+        dropdownVal = jsonResult[0].AccountId;
+        $("#account").data("kendoDropDownList").value(dropdownVal);
+
+        dropdownVal = jsonResult[0].FundId;
+        $("#fund").data("kendoDropDownList").value(dropdownVal);
+
+        dropdownVal = jsonResult[0].TaskId;
+        $("#task").data("kendoDropDownList").value(dropdownVal);
+
+        dropdownVal = jsonResult[0].PCBusId;
+        $("#pcBus").data("kendoDropDownList").value(dropdownVal);
+
+        dropdownVal = jsonResult[0].ProjectId;
+        $("#project").data("kendoDropDownList").value(dropdownVal);
+
+        dropdownVal = jsonResult[0].ActivityId;
+        $("#activity").data("kendoDropDownList").value(dropdownVal);
+
+        dropdownVal = jsonResult[0].ResTypeId;
+        $("#resType").data("kendoDropDownList").value(dropdownVal);
+
+        dropdownVal = jsonResult[0].RequestedByMaintenanceId;
+        $("#requestedByMaintenance").data("kendoDropDownList").value(dropdownVal);
+
+        dropdownVal = jsonResult[0].ApprovedByMaintenanceId;
+        $("#approvedByMaintenance").data("kendoDropDownList").value(dropdownVal);
+
+        dropdownVal = jsonResult[0].ApprovedByAreaEngineerId;
+        $("#approvedByAreaEngineer").data("kendoDropDownList").value(dropdownVal);
+
+        dropdownVal = jsonResult[0].ApprovedByDistrictId;
+        $("#approvedByDistrict").data("kendoDropDownList").value(dropdownVal);
+
+        var dateParts = jsonResult[0].RequestedByMaintenanceDate.split('-');
+        var date = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
+        $("#requestedByMaintenanceDate").data("kendoDatePicker").value(date);
+
+        if (jsonResult[0].ApprovedByMaintenanceDate != null){
+            dateParts = jsonResult[0].ApprovedByMaintenanceDate.split('-');
+            date = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
+            $("#approvedByMaintenanceDate").data("kendoDatePicker").value(date);
+        }
+
+        if (jsonResult[0].ApprovedByAreaEngineerDate != null) {
+            dateParts = jsonResult[0].ApprovedByAreaEngineerDate.split('-');
+            date = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
+            $("#approvedByAreaEngineerDate").data("kendoDatePicker").value(date);
+        }
+
+        if (jsonResult[0].ApprovedByDistrictDate != null){
+            dateParts = jsonResult[0].ApprovedByDistrictDate.split('-');
+            date = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
+            $("#approvedByDistrictDate").data("kendoDatePicker").value(date);
+        }
+
+        if (jsonResult[0].SignReceivedDate != null){
+            dateParts = jsonResult[0].SignReceivedDate.split('-');
+            date = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
+            $("#signReceivedOnDate").data("kendoDatePicker").value(date);
+        }
+
+        if (jsonResult[0].SignInstalledDate != null){
+            dateParts = jsonResult[0].SignInstalledDate.split('-');
+            date = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
+            $("#signInstalledOnDate").data("kendoDatePicker").value(date);
+        }
+    
+        LoadWorkOrderItemInfo(jsonResult);
+    }
+
+    // ****************************************************************************************************************************************************
+    function LoadWorkOrderItemInfo(jsonResult) {
+        var itemsNumber = jsonResult[0].Items.length;
+        var controlVal;
+
+        for (var i = 1; i <= itemsNumber; i++) {
+            addSegment(jsonResult[0].Items[i - 1].SignImage, jsonResult[0].Items[i - 1].InstalledImage, jsonResult[0].Items[i - 1].SignAttachment);
+        }
+
+        for (var i = 1; i <= itemsNumber; i++) {
+            
+            controlVal = jsonResult[0].Items[i - 1].NIGP;
+            $("#nigp-" + i).data("kendoTextArea").value(controlVal);
+
+            // RDC
+            controlVal = jsonResult[0].Items[i - 1].RDC;
+            $("#rdc-" + i).data("kendoCheckBox").check(controlVal);
+
+            controlVal = jsonResult[0].Items[i - 1].Quantity;
+            $("#quantity-" + i).data("kendoNumericTextBox").value(controlVal);
+
+            // Kendo Upload control for image info should be initialized here.
+            // However, Telerik requires that initialization must be done at the time the control is created.
+            // This is all done in addSegment function.
+
+            controlVal = jsonResult[0].Items[i - 1].Name;
+            $("#sign-designation-" + i).data("kendoTextArea").value(controlVal);
+
+            // Show the area engineer approval label when openning an exising record
+            designationLabelId = 'sign-designation-label-' + i;
+            if (controlVal == 'W12-2' || controlVal == 'W12-2A')
+                $('#' + designationLabelId).show();
+
+            controlVal = jsonResult[0].Items[i - 1].Size;
+            $("#sign-size-" + i).data("kendoTextArea").value(controlVal);
+
+            controlVal = jsonResult[0].Items[i - 1].Color;
+            $("#sign-color-" + i).data("kendoTextArea").value(controlVal);
+
+            // RUSH ORDER
+            controlVal = jsonResult[0].Items[i - 1].Rush;
+            $("#rush-order-" + i).data("kendoCheckBox").check(controlVal);
+
+            // NEW INSTALLATION
+            controlVal = jsonResult[0].Items[i - 1].New;
+            $("#new-installation-" + i).data("kendoCheckBox").check(controlVal);
+
+            //controlVal = jsonResult[0].Items[i - 1].Instructions;
+            //$("#instructions-" + i).data("kendoTextArea").value(controlVal);
+
+            controlVal = jsonResult[0].Items[i - 1].SpecialInstructions;
+            $("#specialInstructions-" + i).data("kendoTextArea").value(controlVal);
+
+            controlVal = jsonResult[0].Items[i - 1].Latitude;
+            $("#latitude-" + i).data("kendoTextArea").value(controlVal);
+         
+            controlVal = jsonResult[0].Items[i - 1].Longitude;
+            $("#longitude-" + i).data("kendoTextArea").value(controlVal);
+
+
+            // Kendo Upload control for attachment info should be initialized here.
+            // However, Telerik requires that initialization must be done at the time the control is created.
+            // This is all done in addSegment function.
+
+            if (jsonResult[0].Items[i - 1].ReceivedDate != null) {
+                var dateParts = jsonResult[0].Items[i - 1].ReceivedDate.split('-');
+                var date = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
+                $("#sign-received-date-" + i).data("kendoDatePicker").value(date);
+            }
+
+            if (jsonResult[0].Items[i - 1].InstalledDate != null) {
+                var dateParts = jsonResult[0].Items[i - 1].InstalledDate.split('-');
+                var date = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
+                $("#sign-installed-date-" + i).data("kendoDatePicker").value(date);
+            }
+
+            // Kendo Upload control for installed image info should be initialized here.
+            // However, Telerik requires that initialization must be done at the time the control is created.
+            // This is all done in addSegment function.
+
+        }
+    }
+
+    // ************************************************************************************************************************************************
+    function LoadMaintenanceSectionInfo(result) {
+        if (result == null)
+            return;
+
+        var jsonResult = jQuery.parseJSON(result);
+
+        $("#requestedBy").data("kendoDropDownList").value(jsonResult[0].Id);
+        $("#department").data("kendoDropDownList").value(jsonResult[0].DepartmentId);
+        $("#account").data("kendoDropDownList").value(jsonResult[0].AccountId);
+        $("#fund").data("kendoDropDownList").value(jsonResult[0].FundId);
+        $("#task").data("kendoDropDownList").value(jsonResult[0].TaskId);
+        $("#pcBus").data("kendoDropDownList").value(jsonResult[0].PCBusId);
+        $("#project").data("kendoDropDownList").value(jsonResult[0].ProjectId);
+        $("#activity").data("kendoDropDownList").value(jsonResult[0].ActivityId);
+        $("#resType").data("kendoDropDownList").value(jsonResult[0].ResTypeId);
+    }
+
+    // ****************************************************************************************************************************************************
+    function ProjectNameEditor(container, options) {
+        $('<input required name="Projects">')
+            .appendTo(container)
+            .kendoDropDownList({
+                autoBind: false,
+                dataTextField: "Name",
+                dataValueField: "Id",
+                dataSource: {
+                    type: "ajax",
+                    transport: {
+                        read: "WorkOrder/GetProjects"
+                    }
+                }
+            });
+    }
+
+    // *************************************************************************************************************************************************
+    function MaintenanceSectionContactNameEditor(container, options) {
+        $('<input required name="MaintenanceSectionContacts">')
+            .appendTo(container)
+            .kendoDropDownList({
+                autoBind: false,
+                dataTextField: "FullName",
+                dataValueField: "Id",
+                dataSource: {
+                    type: "ajax",
+                    transport: {
+                        read: "WorkOrder/GetMaintenanceSectionContacts"
+                    }
+                }
+            });
+    }
+
+    // **************************************************************************************************************************************************
+    function DistrictContactNameEditor(container, options) {
+        $('<input required name="DistrictContacts">')
+            .appendTo(container)
+            .kendoDropDownList({
+                autoBind: false,
+                dataTextField: "FullName",
+                dataValueField: "Id",
+                dataSource: {
+                    type: "ajax",
+                    transport: {
+                        read: "WorkOrder/GetDistrictContacts"
+                    }
+                }
+            });
+    }
+
+    // Function to select latitude and longitude by clicking on the map *********************************************************************************
+    function onClick(e) {
+        var latitude = $("#latitude-1").data("kendoTextArea");
+        var longitude = $("#longitude-1").data("kendoTextArea");
+        var location = e.location;
+
+        latitude.value(location.lat);
+        latitude.trigger("change");
+
+        longitude.value(location.lng);
+        longitude.trigger("change");
+    }
+
+    // Function to add a block for a new sign ************************************************************************************************************
+    // imageName argument is used to initialize Kendo Upload control *************************************************************************************
+    function addSegment(imageName, imageInstalledName, attachmentName) {
+        // Check for maximum number of items per order
+        if (cloneCount >= cloneCountMax) {
+            fnShowMessage("You have reached the maximum (" + cloneCountLimit + ") number of items in this work order", "Warning");
+            return;
+        }
+
+        // Add to clone count
+        cloneCount++;
+
+        // Begin by creating and setting the properties of the container and the form
+        $('#sign-container').append('<div id="sign-form-' + cloneCount + '"></div>');
+        $('#sign-form-' + cloneCount).append('<hr/ style="height:5px;background-color:black">');
+        $('#sign-form-' + cloneCount).append('<div id="padding-y-' + cloneCount + '" class="row py-3"></div>');
+
+        // Create the left side block of the form
+        $('#padding-y-' + cloneCount).append('<div id="left-' + cloneCount + '" class="form-group col-12 col-sm-12 col-md-6 col-lg-6 col-xl-6"></div>');
+        
+        // Create the first (1st) block of the left side of the form
+        $('#left-' + cloneCount).append('<div id="first-row-' + cloneCount + '" class="row pt-3"></div>');
+        $('#first-row-' + cloneCount).append('<div id="first-row-left-' + cloneCount + '" class="form-group col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4"></div>');
+
+        createCheckbox('first-row-left-' + cloneCount, 'rdc-' + cloneCount);
+        
+        $('#first-row-left-' + cloneCount).append('<h6 style="display:inline">   RDC</h6>');
+  
+        $('#first-row-' + cloneCount).append('<div id="first-row-center-' + cloneCount + '" class="form-group col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4"></div>');
+
+        createCheckbox('first-row-center-' + cloneCount, 'rush-order-' + cloneCount);
+
+        $('#first-row-center-' + cloneCount).append('<h6 style="display:inline" class="pt-3">   Rush order</h6>');
+  
+        $('#first-row-' + cloneCount).append('<div id="first-row-right-' + cloneCount + '" class="form-group col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4"></div>');
+
+        createCheckbox('first-row-right-' + cloneCount, 'new-installation-' + cloneCount);
+
+        $('#first-row-right-' + cloneCount).append('<h6 style="display:inline" class="pt-3">   New installation</h6>');
+
+
+        // Create the second (2nd) block of the left side of the form 
+        $('#left-' + cloneCount).append('<div id="second-row-' + cloneCount + '" class="row pt-3"></div>');   
+        $('#second-row-' + cloneCount).append('<div id="second-row-left-' + cloneCount + '" class="form-group col-12 col-sm-12 col-md-6 col-lg-6 col-xl-6"></div>');
+        $('#second-row-left-' + cloneCount).append('<h6 class="align-text-bottom">NIGP *</h6>');
+
+        createTextArea('second-row-left-' + cloneCount, 'nigp-' + cloneCount, 1, false);
+        //createLabel('second-row-left-' + cloneCount, 'nigplabel-' + cloneCount);
+
+        $('#second-row-' + cloneCount).append('<div id="second-row-right-' + cloneCount + '" class="form-group col-12 col-sm-12 col-md-6 col-lg-6 col-xl-6"></div>');
+        $('#second-row-right-' + cloneCount).append('<h6>Quantity *</h6>');
+
+        createNumericTextbox();
+
+        // Create the third (3rd) block of the left side of the form
+        $('#left-' + cloneCount).append('<div id="third-row-' + cloneCount + '" class="row pt-3"></div>');
+        $('#third-row-' + cloneCount).append('<div id="third-row-left-' + cloneCount + '" class="form-group col-12 col-sm-12 col-md-6 col-lg-6 col-xl-6"></div>');
+        $('#third-row-left-' + cloneCount).append('<h6 class="pt-3 align-text-bottom">Image Upload *</h6>');
+        
+        createUpload(imageName);
+
+        $('#third-row-' + cloneCount).append('<div id="third-row-right-' + cloneCount + '" class="form-group col-12 col-sm-12 col-md-6 col-lg-6 col-xl-6"></div>');
+        $('#third-row-right-' + cloneCount).append('<h6 class="pt-3">Attachment Upload</h6>');
+
+        createUploadAttachment(attachmentName);
+
+        // Create the fourth (4th) block of the left side of the form
+        $('#left-' + cloneCount).append('<div id="fourth-row-' + cloneCount + '" class="row pt-3"></div>');
+        $('#fourth-row-' + cloneCount).append('<div id="fourth-row-left-' + cloneCount + '" class="form-group col-12 col-sm-12 col-md-6 col-lg-6 col-xl-6"></div>');
+        $('#fourth-row-left-' + cloneCount).append('<h6 class="pt-3">Latitude *</h6>');
+
+        createTextArea('fourth-row-left-' + cloneCount, 'latitude-' + cloneCount, 1, false);
+
+        $('#fourth-row-' + cloneCount).append('<div id="fourth-row-right-' + cloneCount + '" class="form-group col-12 col-sm-12 col-md-6 col-lg-6 col-xl-6"></div>');
+        $('#fourth-row-right-' + cloneCount).append('<h6 class="pt-3">Longitude *</h6>');
+
+        createTextArea('fourth-row-right-' + cloneCount, 'longitude-' + cloneCount, 1, false);
+
+        // Create the fifth (5th) block of the left side of the form
+        $('#left-' + cloneCount).append('<div id="fifth-row-' + cloneCount + '" class="row pt-3"></div>');
+        $('#fifth-row-' + cloneCount).append('<div id="fifth-row-left-' + cloneCount + '" class="form-group col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4"></div>');
+        $('#fifth-row-left-' + cloneCount).append('<h6 class="pt-3">Sign designation *</h6>');
+
+        createTextArea('fifth-row-left-' + cloneCount, 'sign-designation-' + cloneCount, 1, true);
+        createLabel('fifth-row-left-' + cloneCount, 'sign-designation-label-' + cloneCount);
+
+        $('#fifth-row-' + cloneCount).append('<div id="fifth-row-center-' + cloneCount + '" class="form-group col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4"></div>');
+        $('#fifth-row-center-' + cloneCount).append('<h6 class="pt-3">Sign size *</h6>');
+
+        createTextArea('fifth-row-center-' + cloneCount, 'sign-size-' + cloneCount, 1, false);
+
+        $('#fifth-row-' + cloneCount).append('<div id="fifth-row-right-' + cloneCount + '" class="form-group col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4"></div>');
+        $('#fifth-row-right-' + cloneCount).append('<h6 class="pt-3">Sign color *</h6>');
+
+        createTextArea('fifth-row-right-' + cloneCount, 'sign-color-' + cloneCount, 1, false);
+
+        // $('#left-' + cloneCount).append('<h6 class="pt-3">Instructions *</h6>');
+        // createTextArea('left-' + cloneCount, 'instructions-' + cloneCount, 2, false);
+        
+        // Create block on the left side of the form for special instructions
+        $('#left-' + cloneCount).append('<h6 class="pt-3">Special Instructions *</h6>');
+
+        createTextArea('left-' + cloneCount, 'specialInstructions-' + cloneCount, 2, false);
+
+        $('#padding-y-' + cloneCount).append('<div id="right-' + cloneCount + '" class="form-group col-12 col-sm-12 col-md-6 col-lg-6 col-xl-6"></div>');
+
+        createMap();
+
+        $('#sign-form-' + cloneCount).append('<div id="button-row-' + cloneCount + '" class="py-3 text-center"></div>');
+        
+        // Create the sixth (6th) block of the left side of the form
+        $('#left-' + cloneCount).append('<div id="sixth-row-' + cloneCount + '" class="row pt-3"></div>');
+        $('#sixth-row-' + cloneCount).append('<div id="sixth-row-left-' + cloneCount + '" class="form-group col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4"></div>');
+        $('#sixth-row-left-' + cloneCount).append('<h6 class="pt-3">Sign received date</h6>');
+
+        createDatePicker('sixth-row-left-' + cloneCount, 'sign-received-date-' + cloneCount);
+
+        $('#sixth-row-' + cloneCount).append('<div id="sixth-row-center-' + cloneCount + '" class="form-group col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4"></div>');
+        $('#sixth-row-center-' + cloneCount).append('<h6 class="pt-3">Sign installed date</h6>');
+
+        createDatePicker('sixth-row-center-' + cloneCount, 'sign-installed-date-' + cloneCount);
+
+        $('#sixth-row-' + cloneCount).append('<div id="sixth-row-right-' + cloneCount + '" class="form-group col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4"></div>');
+        $('#sixth-row-right-' + cloneCount).append('<h6 class="pt-3">Sign installed image</h6>');
+
+        createUploadInstalled(imageInstalledName);
+
+
+        // Add button to delete a sign block if there are currently at least 2 blocks  
+        if (cloneCount >= 2)
+            createButtonDeleteSign();
+    }
+
+    // Function to create a kendo button to delete sign segment dynamically *******************************************************************************
+    function createButtonDeleteSign() {
+        var cloneCountAux = cloneCount;
+        //$('#sign-form-' + cloneCountAux).append('<button type="button" id="remove-sign-' + cloneCountAux + '"> Remove sign </button>');
+        $('#button-row-' + cloneCountAux).append('<button type="button" id="remove-sign-' + cloneCountAux + '"> Remove sign </button>');
+        $('#remove-sign-' + cloneCountAux).kendoButton({
+            themeColor: "error",
+            click: function (e) {
+                $('#sign-form-' + cloneCountAux).remove();
+                cloneCountMax++;
+            }
+        });
+    }
+
+    // Function to create a kendo dropdown list dynamically *******************************************************************************************
+    function createDropdown() {
+        $('#first-row-left-' + cloneCount).append('<input id="nigp-' + cloneCount + '">');
+        $('#nigp-' + cloneCount).kendoDropDownList({
+            dataTextField: 'Name',
+            dataValueField: 'Id',
+            filter: 'startsWith',
+            dataSource: {
+                transport: {
+                    read: {
+                        url: 'WorkOrder/GetNIGPsAux',
+                        dataType: 'json'
+                    }
+                }
+            },
+            value: null
+        });
+    }
+
+    // Function to create kendo numeric texbox dynamically *********************************************************************************************
+    function createNumericTextbox() {
+        $('#second-row-right-' + cloneCount).append('<input id="quantity-' + cloneCount + '" />');
+        $('#quantity-' + cloneCount).kendoNumericTextBox({
+            value: 1,
+            format: 'n0',
+            min: 1,
+            max: 10,
+        });
+    }
+
+    // Function to create kendo checkbox dynamically ***************************************************************************************************
+    function createCheckbox(idToAppend, id) {
+        $('#' + idToAppend).append('<input id="' + id + '" />');
+        $('#' + id).kendoCheckBox({
+            size: "large",
+            rounded: "large"
+        });
+    }
+
+    // Function to create kendo text area dynamically *************************************************************************************************
+    function createTextArea(idToAppend, id, rowsNumber, isDesignation) {
+        $('#' + idToAppend).append('<textarea id="' + id + '" style="height: auto;"></textarea>');
+        $('#' + id).kendoTextArea({
+            rows: rowsNumber,
+            change: function()
+            {
+                if (isDesignation){
+                    this.value(this.value().replaceAll(" ", ""));
+                    position = id.lastIndexOf('-') + 1;
+                    designationTextAreaId = id.substring(position);
+                    designationLabelId = 'sign-designation-label-' + designationTextAreaId; 
+                    designationTextAreaValue = $('#' + id).val();
+
+                    if (designationTextAreaValue == 'W12-2' || designationTextAreaValue == 'W12-2A')
+                        $('#' + designationLabelId).show();
+                    else
+                        $('#' + designationLabelId).hide();
+                }
+            }
+        });
+    }
+
+    // Function to create label dynamically ***********************************************************************************************************
+    function createLabel(idToAppend, id){
+        $('#' + idToAppend).append('<label id="' + id + '" style="height: auto; color: red">Requires area engineer approval</label>');
+        $('#' + id).hide();
+    }
+
+    // Function to create kendo date picker dynamically *************************************************************************************************
+    function createDatePicker(idToAppend, id) {
+        $('#' + idToAppend).append('<input id="' + id + '" />');
+        $('#' + id).kendoDatePicker({
+            format: 'MMM-dd-yyyy'
+        });
+    }
+
+    // Function to create a kendo upload dynamically for image attachment *****************************************************************************
+    // imageName must be of type string
+    function createUpload(imageName) {
+        var image = [];
+    
+        if (typeof imageName != "string")
+            imageName = null;
+
+        if (imageName != null)
+            image = [{name:imageName}];
+
+        //$('#left-' + cloneCount).append('<input id="files-' + cloneCount + '" name="files" type="file"/>');
+        $('#third-row-left-' + cloneCount).append('<input id="files-' + cloneCount + '" name="files" type="file"/>');
+        $('#files-' + cloneCount).kendoUpload({
+            multiple: false,
+            async: {
+                saveUrl: '/WorkOrder/SaveUploadedImage',
+                removeUrl: '/WorkOrder/RemoveUploadedImage',
+                autoUpload: true
+            },
+            files: image,
+            success: onUploadSuccess
+        });
+
+        // if length of array is greater than zero, it means that an image already exists (an existing record is being edited)
+        if (image.length > 0) {
+            onUploadSuccessAux();
+        }   
+    }
+
+    // Function to create a kendo upload dynamically for installed image attachment *****************************************************************************
+    // imageName must be of type string
+    function createUploadInstalled(imageInstalledName) {
+        var imageInstalled = [];
+
+        if (typeof imageInstalledName != "string")
+            imageInstalledName = null;
+
+        if (imageInstalledName != null)
+            imageInstalled = [{ name: imageInstalledName }];
+
+        //$('#left-' + cloneCount).append('<input id="files-' + cloneCount + '" name="files" type="file"/>');
+        $('#sixth-row-right-' + cloneCount).append('<input id="files-installed-' + cloneCount + '" name="filesInstalled" type="file"/>');
+        $('#files-installed-' + cloneCount).kendoUpload({
+            multiple: false,
+            async: {
+                saveUrl: '/WorkOrder/SaveUploadedInstalledImage',
+                removeUrl: '/WorkOrder/RemoveUploadedInstalledImage',
+                autoUpload: true
+            },
+            files: imageInstalled,
+            success: onInstalledImageUploadSuccess
+        });
+
+        // if length of array is greater than zero, it means that an image already exists (an existing record is being edited)
+        if (imageInstalled.length > 0) {
+            onInstalledImageUploadSuccessAux();
+        }
+    }
+
+    // Function to create a kendo upload dynamically for document attachment ***************************************************************************
+    // attachmentName must be of type string
+    function createUploadAttachment(attachmentName) {
+        var attachment = [];
+
+        if (typeof attachmentName != "string")
+            attachmentName = null;
+
+        if (attachmentName != null)
+            attachment = [{name:attachmentName}];
+        
+        //$('#left-' + cloneCount).append('<input id="files-' + cloneCount + '" name="files" type="file"/>');
+        $('#third-row-right-' + cloneCount).append('<input id="attachments-' + cloneCount + '" name="attachments" type="file"/>');
+        $('#attachments-' + cloneCount).kendoUpload({
+            multiple: false,
+            async: {
+                saveUrl: '/WorkOrder/SaveUploadedAttachment',
+                removeUrl: '/WorkOrder/RemoveUploadedAttachment',
+                autoUpload: true
+            },
+            files: attachment,
+            success: onUploadAttachmentSuccess
+        });
+
+        // if length of array is greater than zero, it means that an image already exists (an existing record is being edited)
+        if (attachment.length > 0) {
+            onUploadAttachmentSuccessAux();
+        }
+    }
+
+    // Upload Control Success Event *********************************************************************************************************************
+    function onUploadSuccess(e) {
+        if (e.operation == "upload") {
+            onUploadSuccessAux();
+        }
+    }
+
+    // *************************************************************************************************************************************************
+    function onUploadSuccessAux() {
+        // $('.k-file-name').eq(cloneCount - 1).click(onUploadClick);
+        // $('.k-file-name').eq(cloneCount - 1).mouseover(onUploadMouseOver);
+        // $('.k-file-name').addClass("link-primary");
+        $('#third-row-left-' + cloneCount).find('.k-widget').find('.k-upload-files').find('.k-file').find('.k-file-name-size-wrapper').find('.k-file-name').eq(0).click(onUploadClick);
+        $('#third-row-left-' + cloneCount).find('.k-widget').find('.k-upload-files').find('.k-file').find('.k-file-name-size-wrapper').find('.k-file-name').eq(0).mouseover(onUploadMouseOver);
+        $('#third-row-left-' + cloneCount).find('.k-widget').find('.k-upload-files').find('.k-file').find('.k-file-name-size-wrapper').find('.k-file-name').addClass("link-primary");
+    }
+
+    // Upload Control Click Event ***********************************************************************************************************************
+    function onUploadClick() {
+        var imageName = $('.k-file-name').eq($('.k-file-name').index(this)).attr('title');
+        //var imageName = $('#third-row-left-' + cloneCount).find('.k-widget').find('.k-upload-files').find('.k-file').find('.k-file-name-size-wrapper').find('.k-file-name').eq($('#third-row-left-' + cloneCount).find('.k-widget').find('.k-upload-files').find('.k-file').find('.k-file-name-size-wrapper').find('.k-file-name').index(this)).attr('title');
+        var imageWindow = $('#imageWindow').data('kendoWindow');
+        imageWindow.content("<img class='img-fluid' src='/images/signs/" + imageName + "' alt='Image'>");
+        imageWindow.center();
+        imageWindow.open();
+    }
+
+    // Upload Control Mouse Over Event ******************************************************************************************************************
+    function onUploadMouseOver() {
+        $('.k-file-name').css('cursor', 'pointer');
+        //$('#third-row-left-' + cloneCount).find('.k-widget').find('.k-upload-files').find('.k-file').find('.k-file-name-size-wrapper').find('.k-file-name').css('cursor', 'pointer');
+    }
+
+    // Installed Image Upload Control Success Event *********************************************************************************************************************
+    function onInstalledImageUploadSuccess(e) {
+        if (e.operation == "upload") {
+            onInstalledImageUploadSuccessAux();
+        }
+    }
+
+    // *************************************************************************************************************************************************
+    function onInstalledImageUploadSuccessAux() {
+        //$('.k-file-name').eq(cloneCount - 1).click(onInstalledImageUploadClick);
+        //$('.k-file-name').eq(cloneCount - 1).mouseover(onInstalledImageUploadMouseOver);
+        //$('.k-file-name').addClass("link-primary");
+        $('#sixth-row-right-' + cloneCount).children('.k-widget').children('.k-upload-files').children('.k-file').children('.k-file-name-size-wrapper').children('.k-file-name').eq(0).click(onInstalledImageUploadClick);
+        $('#sixth-row-right-' + cloneCount).children('.k-widget').children('.k-upload-files').children('.k-file').children('.k-file-name-size-wrapper').children('.k-file-name').eq(0).mouseover(onInstalledImageUploadMouseOver);
+        $('#sixth-row-right-' + cloneCount).children('.k-widget').children('.k-upload-files').children('.k-file').children('.k-file-name-size-wrapper').children('.k-file-name').addClass("link-primary");
+
+    }
+
+    // Installed Image Upload Control Click Event ***********************************************************************************************************************
+    function onInstalledImageUploadClick() {
+        var imageName = $('.k-file-name').eq($('.k-file-name').index(this)).attr('title');
+        // var imageName = $('#sixth-row-right-' + cloneCount).children('.k-widget').children('.k-upload-files').children('.k-file').children('.k-file-name-size-wrapper').children('.k-file-name').eq($('#sixth-row-right-' + cloneCount).children('.k-widget').children('.k-upload-files').children('.k-file').children('.k-file-name-size-wrapper').children('.k-file-name').index(this)).attr('title');
+        var imageWindow = $('#imageWindow').data('kendoWindow');
+        imageWindow.content("<img class='img-fluid' src='/images/installed_signs/" + imageName + "' alt='Image'>");
+        imageWindow.center();
+        imageWindow.open();
+    }
+
+    // Installed Image Upload Control Mouse Over Event ******************************************************************************************************************
+    function onInstalledImageUploadMouseOver() {
+        $('.k-file-name').css('cursor', 'pointer');
+    }
+
+    // Upload Attachment Control Success Event **********************************************************************************************************
+    function onUploadAttachmentSuccess(e) {
+        if (e.operation == "upload") {
+            onUploadAttachmentSuccessAux();
+        }
+    }
+
+    // **************************************************************************************************************************************************
+    function onUploadAttachmentSuccessAux() {
+        $('.k-file-name').eq(cloneCount - 1).click(onUploadAttachmentClick);
+        $('.k-file-name').eq(cloneCount - 1).mouseover(onUploadAttachmentMouseOver);
+        $('.k-file-name').addClass("link-primary");
+    }
+
+    // Upload Attachment Control Click Event ************************************************************************************************************
+    function onUploadAttachmentClick() {
+        // var attachmentName = $('.k-file-name').eq($('.k-file-name').index(this)).attr('title');
+        // var attachmentWindow = $('#imageWindow').data('kendoWindow');
+        // imageWindow.content("<img class='img-fluid' src='/images/signs/" + imageName + "' alt='Image'>");
+        // imageWindow.center();
+        // imageWindow.open();
+    }
+
+    // Upload Attachment Control Mouse Over Event *******************************************************************************************************
+    function onUploadAttachmentMouseOver() {
+        $('.k-file-name').css('cursor', 'pointer');
+    }
+
+    // Function to create a kendo map dynamically *******************************************************************************************************
+    function createMap() {
+        var mapNum = cloneCount;
+
+        $('#right-' + cloneCount).append('<div id="map-' + cloneCount + '" style="width: 100%; height: 530px;"></div>');
+        var map = $('#map-' + cloneCount).kendoMap({
+            zoom: 11,
+            center: [27.8006, -97.3964],
+            layers: [{
+                type: 'tile',
+                urlTemplate: 'http://a.tile.openstreetmap.org/#= zoom #/#= x #/#= y #.png',
+                attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap contributors</a>.'
+            }],
+            click: function (e) {
+                var latitude = $('#latitude-' + mapNum).data("kendoTextArea");
+                var longitude = $('#longitude-' + mapNum).data("kendoTextArea");
+                var location = e.location;
+
+                latitude.value(location.lat);
+                latitude.trigger("change");
+
+                longitude.value(location.lng);
+                longitude.trigger("change");
+
+                addMarker(location.lat, location.lng);
+            }
+        }).data("kendoMap");
+
+        // Function to add a marker dynamically
+        function addMarker(lat, lng) {
+            map.markers.clear();
+            map.markers.add({
+                location: [lat, lng],
+                tooltip: {
+                    content: "New Marker"
+                }
+            });
+        }
+
+        // Function that sets the pin at the beginning if there is a value for latitude and longitude
+        // Function is delayed to ensure the textarea values are loaded first
+        setTimeout(function () {
+
+            if ($('#latitude-' + mapNum).data("kendoTextArea").value() == "")
+                return;
+
+            var savedLatitude = $('#latitude-' + mapNum).data("kendoTextArea").value();
+            var savedLongitude = $('#longitude-' + mapNum).data("kendoTextArea").value();
+            addMarker(savedLatitude, savedLongitude);
+        }, 500); // Adjust the delay as needed
+    }
+
+    // Function to save work order ***********************************************************************************************************************
+    function SaveWorkOrder() {
+        var workOrder = GetWorkOrderData();
+        //alert(workOrder.ApprovedByMaintenanceId + ', ' + workOrder.ApprovedByMaintenanceDate);
+        //alert(workOrder.ApprovedByMaintenanceId.toString().length + ', ' + workOrder.ApprovedByMaintenanceDate.toString().length);
+        //alert(JSON.stringify(workOrder));
+
+        $.ajax({
+            type: 'POST',
+            url: '/WorkOrder/Create',
+            contentType: 'application/json; charset=utf-8',
+            data: JSON.stringify(workOrder),
+            success: function (result) {
+                fnShowMessage("Work order was created", "Success");
+                RefreshGrid();
+            },
+            error: function (xhr, textStatus, errorThrown) {
+                //alert(xhr.textStatus + ", " + errorThrown + ", error");
+                fnShowMessage(xhr.responseText, "Error");
+            }
+        });
+    }
+
+    // Function to edit/update work order ***************************************************************************************************************
+    function UpdateWorkOrder() {
+        var workOrder = GetWorkOrderData();
+        //alert(JSON.stringify(workOrder));
+        $.ajax({
+            type: 'POST',
+            url: '/WorkOrder/Update',
+            contentType: 'application/json; charset=utf-8',
+            data: JSON.stringify(workOrder),
+            success: function (result) {
+                fnShowMessage("Information was updated", "Success");
+                RefreshGrid();
+            },
+            error: function (xhr, textStatus, errorThrown) {
+                fnShowMessage(xhr.responseText, "Error");
+            }
+        });
+    }
+
+    // Function that refreshes the grid ****************************************************************************************************************
+    function RefreshGrid() {
+        $('#workOrderGrid').data('kendoGrid').dataSource.read();
+        $('#workOrderGrid').data('kendoGrid').refresh();
+        //var grid = $("#workOrderGrid").data("kendoGrid");
+        //grid.refresh();
+    }
+
+    // Function that calls the function that creates the PDF form **************************************************************************************
+    function CreatePDF() {
+        var workOrder = GetWorkOrderData();
+        var fileName = '';
+        $.ajax({
+            type: 'POST',
+            url: '/WorkOrder/ExportPdf',
+            contentType: 'application/json; charset=utf-8',
+            data: JSON.stringify(workOrder),
+            success: function (result) { 
+                fileName = result;
+            },
+            error: function (xhr, textStatus, errorThrown) {
+                fnShowMessage(xhr.responseText, "Error");
+            },
+            complete: function () {
+                window.open('/SignRequestPDFs/' + fileName, '_blank');
+            }
+        });
+    }
+
+    // ************************************************************************************************************************************************
+    function GetWorkOrderData() {
+        var files = [];
+        var filesInstalled = [];
+        var attachments = [];
+
+        var workOrder = {
+            Id: workOrderId,
+            Number: 0,
+            MaterialRequestedFromId: $("#requestedFrom").val(),
+            MaterialRequestedById: $("#requestedBy").val(),
+            DepartmentId: $("#department").val(),
+            AccountId: $("#account").val(),
+            //AccountId: $("#account").val().toString().length != 0 ? $("#account").val() : null,
+            FY: $("#year").val(),
+            FundId: $("#fund").val(),
+            //TaskId: $("#task").val(),
+            TaskId: $("#task").val().toString().length != 0 ? $("#task").val() : null,
+            PCBusId: $("#pcBus").val(),
+            ProjectId: $("#project").val(),
+            ActivityId: $("#activity").val(),
+            ResTypeId: $("#resType").val(),
+            RequestedByMaintenanceId: $("#requestedByMaintenance").val(),
+            RequestedByMaintenanceDate: new Date($("#requestedByMaintenanceDate").val()),
+            ApprovedByMaintenanceId: $("#approvedByMaintenance").val().toString().length != 0 ? $("#approvedByMaintenance").val() : null,
+            ApprovedByMaintenanceDate: $("#approvedByMaintenanceDate").val().toString().length != 0 ? new Date($("#approvedByMaintenanceDate").val()) : null,
+            ApprovedByAreaEngineerId: $("#approvedByAreaEngineer").val().toString().length != 0 ? $("#approvedByAreaEngineer").val() : null,
+            ApprovedByAreaEngineerDate: $("#approvedByAreaEngineerDate").val().toString().length != 0 ? new Date($("#approvedByAreaEngineerDate").val()) : null,
+            ApprovedByDistrictId: $("#approvedByDistrict").val().toString().length != 0 ? $("#approvedByDistrict").val() : null,
+            ApprovedByDistrictDate: $("#approvedByDistrictDate").val().toString().length != 0 ? new Date($("#approvedByDistrictDate").val()) : null,
+            SignReceivedDate: $("#signReceivedOnDate").val().toString().length != 0 ? new Date($("#signReceivedOnDate").val()) : null,
+            SignInstalledDate: $("#signInstalledOnDate").val().toString().length != 0 ? new Date($("#signInstalledOnDate").val()) : null,
+            Items: []
+        }
+
+        var imageName = '';
+        var imageInstalledName = '';
+        var attachmentName = '';
+
+        for (var i = 1; i <= cloneCount; i++) {
+            if ($('#sign-form-' + i).length > 0) {
+                files = $("#files-" + i).data("kendoUpload").getFiles();
+                filesInstalled = $("#files-installed-" + i).data("kendoUpload").getFiles();
+                attachments = $("#attachments-" + i).data("kendoUpload").getFiles();
+
+                // if length = 0, then the sign image (upload control) was not edited, the sign image is the same as when the record was loaded
+                if (files.length == 0)
+                    imageName = $("#files-" + i).data("kendoUpload").files[0].name;
+                else
+                    imageName = files[0].name;
+
+                // if length = 0, then the installed sign image (upload control) was not edited, the installed sign image is the same as when the record was loaded
+                if (filesInstalled.length == 0)
+                    imageInstalledName = null;
+                else
+                    imageInstalledName = filesInstalled[0].name;
+
+                // if length = 0, then the attachment (upload control) was not edited, the attachment is the same as when the record was loaded
+                if (attachments.length == 0)
+                    attachmentName = null;
+                else
+                    attachmentName = attachments[0].name;
+                
+                workOrder.Items.push({
+                    NIGP: $("#nigp-" + i).val(),
+                    RDC: $("#rdc-" + i).data("kendoCheckBox").check(),
+                    Quantity: $("#quantity-" + i).val(),
+                    //Instructions: $("#instructions-" + i).val(),
+                    SignImage: imageName,
+                    Name: $("#sign-designation-" + i).val(),
+                    Size: $("#sign-size-" + i).val(),
+                    Color: $("#sign-color-" + i).val(),
+                    Rush: $("#rush-order-" + i).data("kendoCheckBox").check(),
+                    New: $("#new-installation-" + i).data("kendoCheckBox").check(),
+                    SpecialInstructions: $("#specialInstructions-" + i).val(),
+                    Latitude: $("#latitude-" + i).val(),
+                    Longitude: $("#longitude-" + i).val(),
+                    SignAttachment: attachmentName,
+                    ReceivedDate: $("#sign-received-date-" + i).val().toString().length != 0 ? new Date($("#sign-received-date-" + i).val()) : null,
+                    InstalledDate: $("#sign-installed-date-" + i).val().toString().length != 0 ? new Date($("#sign-installed-date-" + i).val()) : null,
+                    InstalledImage: imageInstalledName
+                });
+            }
+        }
+        return workOrder;
+    }
+</script>
+
+
+<script id="popup-editor" type="text/x-kendo-template">
+	@Html.Partial("_Insert")
+</script>

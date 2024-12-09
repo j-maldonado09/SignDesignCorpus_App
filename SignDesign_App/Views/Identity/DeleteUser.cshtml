@@ -1,0 +1,76 @@
+﻿@using SignDesign_App.ViewModels
+@using Microsoft.AspNetCore.Identity;
+@model EditUserRoleViewModel
+
+<h1>Delete User</h1>
+
+<div class="row">
+    <div class="col-sm-12 col-md-6 offset-md-3 col-lg-6 offset-lg-3 col-xl-6 offset-xl-3">
+        <form method="post">
+            <div class="form-group">
+                <label asp-for="id"></label>
+                <input asp-for="id" class="form-control" readonly />
+                <span asp-validation-for="id" class="text-danger"></span>
+            </div>
+            <br />
+
+            <div class="form-group">
+                <label asp-for="FirstName"></label>
+                <input asp-for="FirstName" class="form-control" readonly />
+                <span asp-validation-for="FirstName" class="text-danger"></span>
+            </div>
+            <br />
+
+            <div class="form-group">
+                <label asp-for="LastName"></label>
+                <input asp-for="LastName" class="form-control" readonly />
+                <span asp-validation-for="LastName" class="text-danger"></span>
+            </div>
+            <br />
+
+            <div class="form-group">
+                <label asp-for="OrganizationType"></label>
+                <input asp-for="OrganizationType" class="form-control" readonly />
+                <span asp-validation-for="OrganizationType" class="text-danger"></span>
+            </div>
+            <br />
+
+            <div class="form-group">
+                <label asp-for="Email"></label>
+                <input asp-for="Email" class="form-control" readonly />
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+            <br />
+
+             <div hidden>
+                <input asp-for="PreviousGroup" class="form-control" readonly />
+            </div>
+
+            @* The SELECT tag is bound to Group and not to Groups because the HTML Form only returns the selected item
+                and not the entire content of the DropDownList. *@
+            <div class="form-group">
+                <label asp-for="Groups"></label>
+                <select asp-for="Group" class="form-select disabled" aria-label="List of groups" disabled>
+                    @foreach(IdentityRole item in Model.Groups)
+                    {
+                        @if(item.Name == Model.Group)
+                        {
+                            <option selected value="@item.Name">@item.Name</option>
+                        }
+                        else
+                        {
+                            <option value="@item.Name">@item.Name</option>
+                        }
+                    }
+                </select>
+            </div>
+            <br />
+
+            <div asp-validation-summary="All" class="text-danger"></div>
+            <br />
+
+            <button type="submit" class="btn btn-danger">Delete</button>
+            <button type="submit" asp-action="Index" asp-controller="Identity" class="btn btn-secondary">Cancel</button>
+        </form>
+    </div>
+</div>

@@ -1,0 +1,36 @@
+﻿@using Microsoft.AspNetCore.Identity;
+<h1>Account Registration Confirmation</h1>
+
+<br /><br /><br /><br /><br />
+
+@{
+    if (ViewData.ModelState.ErrorCount == 0)
+    {
+        <div class="card text-light mb-3" style="max-width: 80%;">
+            <div class="card-header bg-primary text-light"><h3>Ready</h3></div>
+            <div class="card-body bg-light text-primary">
+                <h5 class="card-title">Your account has been activated</h5>
+                <p class="card-text">You can access it anytime.</p>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="card text-light mb-3" style="max-width: 80%;">
+            <div class="card-header bg-danger text-light"><h3>Account confirmation error</h3></div>
+            <div class="card-body bg-light text-danger">
+                <h5 class="card-title">Your account could not be activated</h5>
+                    <div asp-validation-summary="All" class="text-danger"></div>
+            </div>
+        </div>
+    }
+}
+
+
+@*@foreach (var item in ViewData.ModelState.Values)
+                {
+                     @foreach (var error in item.Errors)
+                    {
+                        <p class="card-text">@error.ErrorMessage</p>
+                    }
+                }*@

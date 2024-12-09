@@ -1,0 +1,53 @@
+﻿@using SignDesign_App.ViewModels
+@model LoginViewModel
+
+<br />
+<h3 style="text-align:center">Corpus Christi</h3>
+<h3 style="text-align:center">Sign Design Management</h3>
+<br />
+
+<div class="row">
+    <div class="col-sm-12 col-md-6 offset-md-3 col-lg-6 offset-lg-3 col-xl-6 offset-xl-3">
+        <h3>Login</h3>
+        <br/>
+        <form method="post">
+            <div class="form-group">
+                <label asp-for="Email"></label>
+                <input asp-for="Email" class="form-control" />
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+            <br />
+
+            <div class="form-group">
+                <label asp-for="Password"></label>
+                <input asp-for="Password" class="form-control" />
+                <span asp-validation-for="Password" class="text-danger"></span>
+            </div>
+            <br />
+
+            <div class="form-group">
+                <div style="float:left">
+                    <label asp-for="RememberMe"></label>
+                    <input type="checkbox" asp-for="RememberMe"/>
+                    <span asp-validation-for="RememberMe" class="text-danger"></span>
+                </div>
+
+                <div style="float:right">
+                    <a style="text-decoration:none" class="text-primary" asp-action="ForgotPassword" asp-controller="Identity">Forgot password?</a>
+                </div>
+            </div>
+
+            <br /><br />
+            <div asp-validation-summary="All" class="text-danger"></div>
+
+            <br />
+            <button type="submit" class="btn btn-primary center-button-css-signin">Login</button>
+        </form>
+        <br />
+        <br />
+        <p align="center">or</p>
+        <form method="get" asp-action="Register" asp-controller="Identity">
+            <button type="submit" class="btn btn-dark center-button-css-signin">Register</button>
+        </form>
+    </div>
+</div>

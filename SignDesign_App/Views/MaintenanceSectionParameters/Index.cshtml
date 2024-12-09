@@ -1,0 +1,188 @@
+﻿@model List<MaintenanceSectionParametersViewModel>;
+@using SignDesignCorpus;
+@using SignDesignCorpus.ViewModels;
+
+@{
+	//MaintenanceSectionParametersViewModel maintenanceSectionParameters = (MaintenanceSectionParametersViewModel)ViewData["maintenanceSectionParameters"];
+	IEnumerable<Department> department = (IEnumerable<Department>)ViewData["departments"];
+	IEnumerable<Account> account = (IEnumerable<Account>)ViewData["accounts"];
+	IEnumerable<Fund> fund = (IEnumerable<Fund>)ViewData["funds"];
+	IEnumerable<Task_> task = (IEnumerable<Task_>)ViewData["tasks"];
+	IEnumerable<PCBus> pCBus = (IEnumerable<PCBus>)ViewData["pCBuses"];
+	IEnumerable<Project> project = (IEnumerable<Project>)ViewData["projects"];
+	IEnumerable<Activity> activity = (IEnumerable<Activity>)ViewData["activities"];
+	IEnumerable<ResType> resType = (IEnumerable<ResType>)ViewData["resTypes"];
+}
+
+<h1>
+	Maintenance Section Parameters
+</h1>
+
+<br/>
+<br/>
+
+<form id="MaintSectParameters">
+		<div class="row pb-3">
+			<div class="form-group col-12 col-sm-12 col-md-6 col-lg-3 col-xl-3">
+				<h6 class="pt-3 text-center">Dept</h6>
+				@{
+					if (Model[0].DepartmentId != null)
+					{
+						<kendo-dropdownlist id="department" name="department" datatextfield="Name" datavaluefield="Id" bind-to=@department value=@Model[0].DepartmentId filter="FilterType.StartsWith" >
+						</kendo-dropdownlist>
+					}
+					else
+					{
+						<kendo-dropdownlist id="department" name="department" datatextfield="Name" datavaluefield="Id" bind-to=@department filter="FilterType.StartsWith" >
+						</kendo-dropdownlist>
+					}
+				}
+			</div>
+			<div class="form-group col-12 col-sm-12 col-md-6 col-lg-3 col-xl-3">
+				<h6 class="pt-3 text-center">Account</h6>
+				@{
+					if (Model[0].AccountId != null)
+					{
+						<kendo-dropdownlist id="account" name="account" datatextfield="Name" datavaluefield="Id" bind-to=@account value=@Model[0].AccountId filter="FilterType.StartsWith"> 
+						</kendo-dropdownlist>
+					}
+					else
+					{
+						<kendo-dropdownlist id="account" name="account" datatextfield="Name" datavaluefield="Id" bind-to=@account filter="FilterType.StartsWith"> 
+						</kendo-dropdownlist>
+					}
+				}
+			</div>
+			<div class="form-group col-12 col-sm-12 col-md-6 col-lg-3 col-xl-3">
+				<h6 class="pt-3 text-center">Fund</h6>
+				@{
+					if (Model[0].FundId != null)
+					{
+						<kendo-dropdownlist id="fund" name="fund" datatextfield="Name" datavaluefield="Id" bind-to=@fund value=@Model[0].FundId filter="FilterType.StartsWith">
+						</kendo-dropdownlist>
+					}
+					else
+					{
+						<kendo-dropdownlist id="fund" name="fund" datatextfield="Name" datavaluefield="Id" bind-to=@fund filter="FilterType.StartsWith">
+						</kendo-dropdownlist>
+					}
+				}
+			</div>
+			<div class="form-group col-12 col-sm-12 col-md-6 col-lg-3 col-xl-3">
+				<h6 class="pt-3 text-center">Task</h6>
+				@{
+					if (Model[0].TaskId != null)
+					{
+						<kendo-dropdownlist id="task" name="task" datatextfield="Name" datavaluefield="Id" bind-to=@task value=@Model[0].TaskId filter="FilterType.StartsWith">
+						</kendo-dropdownlist>
+					}
+					else
+					{
+						<kendo-dropdownlist id="task" name="task" datatextfield="Name" datavaluefield="Id" bind-to=@task filter="FilterType.StartsWith">
+						</kendo-dropdownlist>
+					}
+				}
+			</div>
+		</div>
+		<div class="row pb-3">
+			<div class="form-group col-12 col-sm-12 col-md-6 col-lg-3 col-xl-3">
+				<h6 class="pt-3 text-center">PC Bus</h6>
+				@{
+					if (Model[0].PCBusId != null)
+					{
+						<kendo-dropdownlist id="pcBus" name="pcBus" datatextfield="Name" datavaluefield="Id" bind-to=@pCBus value=@Model[0].PCBusId filter="FilterType.StartsWith">
+						</kendo-dropdownlist>
+					}
+					else
+					{
+						<kendo-dropdownlist id="pcBus" name="pcBus" datatextfield="Name" datavaluefield="Id" bind-to=@pCBus filter="FilterType.StartsWith">
+						</kendo-dropdownlist>
+					}
+				}
+			</div>
+			<div class="form-group col-12 col-sm-12 col-md-6 col-lg-3 col-xl-3">
+				<h6 class="pt-3 text-center">Project</h6>
+				@{
+					if (Model[0].ProjectId != null)
+					{
+						<kendo-dropdownlist id="project" name="project" datatextfield="Name" datavaluefield="Id" bind-to=@project value=@Model[0].ProjectId filter="FilterType.StartsWith"> 
+						</kendo-dropdownlist>
+					}
+					else
+					{
+						<kendo-dropdownlist id="project" name="project" datatextfield="Name" datavaluefield="Id" bind-to=@project filter="FilterType.StartsWith"> 
+						</kendo-dropdownlist>
+					}
+				}
+			</div>
+			<div class="form-group col-12 col-sm-12 col-md-6 col-lg-3 col-xl-3">
+				<h6 class="pt-3 text-center">Activity</h6>
+				@{
+					if (Model[0].ActivityId != null)
+					{
+						<kendo-dropdownlist id="activity" name="activity" datatextfield="Name" datavaluefield="Id" bind-to=@activity value=@Model[0].ActivityId filter="FilterType.StartsWith">
+						</kendo-dropdownlist>
+					}
+					else
+					{
+						<kendo-dropdownlist id="activity" name="activity" datatextfield="Name" datavaluefield="Id" bind-to=@activity filter="FilterType.StartsWith">
+						</kendo-dropdownlist>
+					}
+				}
+			</div>
+			<div class="form-group col-12 col-sm-12 col-md-6 col-lg-3 col-xl-3">
+				<h6 class="pt-3 text-center">Res Type</h6>
+				@{
+					if (Model[0].ResTypeId != null)
+					{
+						<kendo-dropdownlist id="resType" name="resType" datatextfield="Name" datavaluefield="Id" bind-to=@resType value=@Model[0].ResTypeId filter="FilterType.StartsWith">
+						</kendo-dropdownlist>
+					}
+					else
+					{
+						<kendo-dropdownlist id="resType" name="resType" datatextfield="Name" datavaluefield="Id" bind-to=@resType filter="FilterType.StartsWith">
+						</kendo-dropdownlist>
+					}
+				}
+			</div>
+		</div>
+		<br/>
+		<br/>
+		<div class="text-center">
+			<button type="button" class="btn btn-primary btn-lg" onclick="saveMaintenanceSectionParameters()">Save</button>
+		</div>
+</form>
+
+<div id="messageDialog">
+
+</div>
+
+<script>
+	// *********************************************************************
+	function saveMaintenanceSectionParameters(){
+		var maintenanceSectionParameters = {
+			Id: @Model[0].Id,
+			DepartmentId: $("#department").val() != -1 ? $("#department").val() : null,
+			AccountId: $("#account").val() != -1 ? $("#account").val() : null,
+			FundId: $("#fund").val() != -1 ? $("#fund").val() : null,
+			TaskId: $("#task").val() != -1 ? $("#task").val() : null,
+			PCBusId: $("#pcBus").val() != -1 ? $("#pcBus").val() : null,
+			ProjectId: $("#project").val() != -1 ? $("#project").val() : null,
+			ActivityId: $("#activity").val() != -1 ? $("#activity").val() : null,
+			ResTypeId: $("#resType").val() != -1 ? $("#resType").val() : null
+		}
+		$.ajax({
+			type: 'POST',
+			url: '/MaintenanceSectionParameters/SaveMaintenanceSectionParameters',
+			contentType: 'application/json; charset=utf-8',
+			data: JSON.stringify(maintenanceSectionParameters),
+			success: function (result) {
+				fnShowMessage("Parameters saved successfully", "Success");
+			},
+			error: function (xhr, textStatus, errorThrown) {
+				fnShowMessage(xhr.responseText, "Error");
+			}
+		});
+	}
+
+</script>

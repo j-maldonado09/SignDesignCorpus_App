@@ -1,0 +1,39 @@
+﻿@using SignDesign_App.Models
+@using Microsoft.AspNetCore.Identity
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+
+@{
+    var currentUser = await SignInManager.UserManager.GetUserAsync(User);
+}
+
+<ul class="navbar-nav">
+    @if (SignInManager.IsSignedIn(User))
+    {
+        <li class="nav-item">
+            <span class="nav-link text-light fw-bold">Hello @currentUser.UserName!</span>
+        </li>
+    
+        if (await UserManager.IsInRoleAsync(currentUser, "SUPERADMIN"))
+        {
+             <li>
+                 <a  class="nav-link text-light" asp-controller="Identity" asp-action="Index" title="Usuarios">User Management</a>
+             </li>   
+        }
+
+        <li class="nav-item">
+            <form method="post" class="form-inline" asp-action="Logout" asp-controller="Identity">
+                <button type="submit" class="nav-link btn btn-link text-light">Logout</button>
+            </form>
+        </li>
+    }
+    @* else
+    {
+        <li class="nav-item">
+            <a class="nav-link text-light" asp-action="Register" asp-controller="Identity">Register</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link text-light" asp-action="Login" asp-controller="Identity">Login</a>
+        </li>
+    } *@
+</ul>

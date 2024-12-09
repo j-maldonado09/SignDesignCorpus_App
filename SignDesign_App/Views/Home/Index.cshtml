@@ -1,0 +1,24 @@
+﻿@using SignDesign_App.Models;
+@using Microsoft.AspNetCore.Identity;
+@inject UserManager<ApplicationUser> userManager;
+@inject SignInManager<ApplicationUser> SignInManager;
+
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="p-4">
+    <br />
+    <h3 style="text-align:center">Corpus Christi</h3>
+    <h3 style="text-align:center">Sign Design Management</h3>
+    <br/>
+    <img class="center" src="~/Images/txdotBanner.png" width=70% />
+    <br />
+    <br />
+    @if (!SignInManager.IsSignedIn(User))
+    {
+        <form method="get" asp-action="Login" asp-controller="Identity">
+            <button type="submit" class="btn btn-dark center-button-css-signin">Enter</button>
+        </form>
+    }
+</div>

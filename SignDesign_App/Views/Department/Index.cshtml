@@ -1,0 +1,51 @@
+﻿@using SignDesignCorpus;
+@model IEnumerable<Department>
+
+<h1>
+	Catalog of Departments
+</h1>
+
+<kendo-grid name="grid" height="550">
+    <datasource type="DataSourceTagHelperType.Ajax" page-size="20" server-operation="true" on-error="fnShowError">
+        <transport>
+            <create url="Department/Create" />
+            <read url="Department/Read" />
+            <update url="Department/Update" />
+            <destroy url="Department/Delete" />
+        </transport>
+        <schema>
+            <model id="Id">
+                <fields>
+                    <field name="Id" type="number" editable="false"></field>
+                    <field name="Number" type="String"></field>
+                    <field name="Name" type="String"></field>
+                    <field name="Description" type="String"></field>
+                </fields>
+            </model>
+        </schema>
+    </datasource>
+    <editable mode="inline" />
+    <groupable enabled="true" />
+    <sortable enabled="true" />
+    <filterable enabled="true" />
+    <pageable button-count="5" refresh="true" page-sizes="new int[] { 5, 10, 20 }">
+    </pageable>
+    <toolbar> <!-- Enable the built-in grid's Toolbar commands "create", "save", and "cancel". -->
+        <toolbar-button name="create" text="Add new record"></toolbar-button> <!-- Adds an empty row to the grid to create a new record. -->
+    </toolbar>
+    <columns>
+        <column field="Number" title="Number" />
+        <column field="Name" title="Name" />
+        <column field="Description" title="Description" />
+        <column width="220">
+            <commands>
+                <column-command text="Edit" name="edit"></column-command>
+                <column-command text="Delete" name="destroy"></column-command>
+            </commands>
+        </column>
+    </columns>
+</kendo-grid>
+
+<div id="messageDialog">
+
+</div>

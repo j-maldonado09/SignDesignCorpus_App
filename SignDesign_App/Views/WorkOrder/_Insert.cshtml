@@ -1,0 +1,463 @@
+﻿@using SignDesignCorpus;
+@using SignDesignCorpus.ViewModels;
+@using System.Collections.Generic;
+@using SignDesign_App.Models;
+@using Microsoft.AspNetCore.Identity;
+@inject UserManager<ApplicationUser> userManager;
+@*@model IEnumerable<WorkOrderViewModel>*@
+@model SignDesignCorpus.HelperModels.WorkOrderHelperModel
+@addTagHelper *, Kendo.Mvc
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+@{
+	IEnumerable<RegionalDistributionCenter> reqFrom = (IEnumerable<RegionalDistributionCenter>)ViewData["regionalDistributionCenters"];
+	IEnumerable<Year> year = (IEnumerable<Year>)ViewData["years"];
+	IEnumerable<Department> department = (IEnumerable<Department>)ViewData["departments"];
+	IEnumerable<Account> account = (IEnumerable<Account>)ViewData["accounts"];
+	IEnumerable<Fund> fund = (IEnumerable<Fund>)ViewData["funds"];
+	IEnumerable<Task_> task = (IEnumerable<Task_>)ViewData["tasks"];
+	IEnumerable<PCBus> pCBus = (IEnumerable<PCBus>)ViewData["pCBuses"];
+	IEnumerable<Project> project = (IEnumerable<Project>)ViewData["projects"];
+	IEnumerable<Activity> activity = (IEnumerable<Activity>)ViewData["activities"];
+	IEnumerable<ResType> resType = (IEnumerable<ResType>)ViewData["resTypes"];
+	//IEnumerable<MaintenanceSectionContact> maintenanceSectionContacts = (IEnumerable<MaintenanceSectionContact>)ViewData["maintenanceSectionContacts"];
+	IEnumerable<ApplicationUser> maintSectionRequestor = (IEnumerable<ApplicationUser>)ViewData["maintenanceSectionRequestors"];
+	IEnumerable<ApplicationUser> maintSectionApprover = (IEnumerable<ApplicationUser>)ViewData["maintenanceSectionApprovers"];
+	IEnumerable<ApplicationUser> areaEngineer = (IEnumerable<ApplicationUser>)ViewData["areaEngineers"];
+	IEnumerable<ApplicationUser> districtApprover = (IEnumerable<ApplicationUser>)ViewData["districtApprovers"];
+	//IEnumerable<DistrictContact> districtContacts = (IEnumerable<DistrictContact>)ViewData["districtContacts"];
+	IEnumerable<MaintenanceSection> reqBy = (IEnumerable<MaintenanceSection>)ViewData["maintenanceSections"];
+	string currentUserId = (string)ViewData["currentUserId"];
+	
+	var currentUser = await userManager.GetUserAsync(User);
+    var roles = userManager.GetRolesAsync(currentUser).Result;
+	bool isAdmin = roles[0] == "ADMIN" ? true : false;
+}
+
+<div> 
+	@* Block for first set of data *@
+
+	<h3 class="text-center">REGIONAL SIGN REQUEST</h3>
+
+	@* Block for set of data of general info *@
+	
+	<form id="workOrderForm">
+		<div class="row pt-3">
+			<div class="form-group col-12 col-sm-12 col-md-6 col-lg-6 col-xl-6">
+				<h6 class="pt-3 text-center">Material Requested From *</h6>
+				 @*<kendo-dropdownlist id="requestedFrom" name="requestedFrom" datatextfield="Name" datavaluefield="Id" auto-bind="false" filter="FilterType.StartsWith" is-in-client-template=true>
+					 <datasource type="DataSourceTagHelperType.Ajax" server-operation="true">
+						 <transport>
+							 <read url="WorkOrder/GetRegionalDistributionCenters"/>
+						 </transport>
+					 </datasource>
+				 </kendo-dropdownlist>*@
+				 <kendo-dropdownlist id="requestedFrom" name="requestedFrom" datatextfield="Name" datavaluefield="Id" bind-to=@reqFrom index=-1 filter="FilterType.StartsWith" is-in-client-template=true>
+				 </kendo-dropdownlist>
+			</div>
+		</div>
+		<div class="row">
+			<div class="form-group col-12 col-sm-12 col-md-6 col-lg-6 col-xl-6">
+				<h6 class="pt-3 text-center">Material Requested By *</h6>
+
+				 <kendo-dropdownlist id="requestedBy" name="requestedBy" datatextfield="Name" datavaluefield="Id" bind-to=@reqBy index=-1 filter="FilterType.StartsWith" is-in-client-template=true>
+				 </kendo-dropdownlist>
+			</div>
+			<div class="form-group col-12 col-sm-12 col-md-6 col-lg-3 col-xl-3">
+			</div>
+			<div class="form-group col-12 col-sm-12 col-md-6 col-lg-3 col-xl-3">
+				<h6 class="pt-3 text-center">FY *</h6>
+				@* <kendo-dropdownlist id="year" name="year" datatextfield="FiscalYear" datavaluefield="FiscalYear" auto-bind="false" filter="FilterType.StartsWith" is-in-client-template=true>
+					 <datasource type="DataSourceTagHelperType.Ajax" server-operation="true">
+						 <transport>
+							 <read url="WorkOrder/GetYears"/>
+						 </transport>
+					 </datasource>
+				 </kendo-dropdownlist>*@
+				 <kendo-dropdownlist id="year" name="year" datatextfield="FiscalYear" datavaluefield="FiscalYear" bind-to=@year index=-1 filter="FilterType.StartsWith" is-in-client-template=true>
+				 </kendo-dropdownlist>
+			</div>
+		</div>
+		<div class="row">
+			<div class="form-group col-12 col-sm-12 col-md-6 col-lg-3 col-xl-3">
+				<h6 class="pt-3 text-center">Dept *</h6>
+				 @*<kendo-dropdownlist id="department" name="department" datatextfield="Name" datavaluefield="Id" auto-bind="false" filter="FilterType.StartsWith" is-in-client-template=true>
+					 <datasource type="DataSourceTagHelperType.Ajax" server-operation="true">
+						 <transport>
+							 <read url="WorkOrder/GetDepartments"/>
+						 </transport>
+					 </datasource>
+				 </kendo-dropdownlist>*@
+				 <kendo-dropdownlist id="department" name="department" datatextfield="Name" datavaluefield="Id" bind-to=@department index=-1 filter="FilterType.StartsWith" is-in-client-template=true>
+				 </kendo-dropdownlist>
+			</div>
+			<div class="form-group col-12 col-sm-12 col-md-6 col-lg-3 col-xl-3">
+				<h6 class="pt-3 text-center">Account *</h6>
+				 @*<kendo-dropdownlist id="account" name="account" datatextfield="Name" datavaluefield="Id" auto-bind="false" filter="FilterType.StartsWith" is-in-client-template=true> 
+					 <datasource type="DataSourceTagHelperType.Ajax" server-operation="true">
+						 <transport>
+							 <read url="WorkOrder/GetAccounts"/>
+						 </transport>
+					 </datasource>
+				 </kendo-dropdownlist>*@
+				 <kendo-dropdownlist id="account" name="account" datatextfield="Name" datavaluefield="Id" bind-to=@account index=-1 filter="FilterType.StartsWith" is-in-client-template=true> 
+				 </kendo-dropdownlist>
+			</div>
+			<div class="form-group col-12 col-sm-12 col-md-6 col-lg-3 col-xl-3">
+				<h6 class="pt-3 text-center">Fund *</h6>
+				 @*<kendo-dropdownlist id="fund" name="fund" datatextfield="Name" datavaluefield="Id" auto-bind="false" filter="FilterType.StartsWith" is-in-client-template=true>
+					 <datasource type="DataSourceTagHelperType.Ajax" server-operation="true">
+						 <transport>
+							 <read url="WorkOrder/GetFunds"/>
+						 </transport>
+					 </datasource>
+				 </kendo-dropdownlist>*@
+				 <kendo-dropdownlist id="fund" name="fund" datatextfield="Name" datavaluefield="Id" bind-to=@fund index=-1 filter="FilterType.StartsWith" is-in-client-template=true>
+				 </kendo-dropdownlist>
+			</div>
+			<div class="form-group col-12 col-sm-12 col-md-6 col-lg-3 col-xl-3">
+				<h6 class="pt-3 text-center">Task</h6>
+				 @*<kendo-dropdownlist id="task" name="task" datatextfield="Name" datavaluefield="Id" auto-bind="false" filter="FilterType.StartsWith" is-in-client-template=true>
+					 <datasource type="DataSourceTagHelperType.Ajax" server-operation="true">
+						 <transport>
+							 <read url="WorkOrder/GetTasks"/>
+						 </transport>
+					 </datasource>
+				 </kendo-dropdownlist>*@
+				 <kendo-dropdownlist id="task" name="task" datatextfield="Name" datavaluefield="Id" bind-to=@task index=-1 filter="FilterType.StartsWith" is-in-client-template=true>
+				 </kendo-dropdownlist>
+			</div>
+		</div>
+		<div class="row pb-3">
+			<div class="form-group col-12 col-sm-12 col-md-6 col-lg-3 col-xl-3">
+				<h6 class="pt-3 text-center">PC Bus *</h6>
+				 @*<kendo-dropdownlist id="pcBus" name="pcBus" datatextfield="Name" datavaluefield="Id" auto-bind="false" filter="FilterType.StartsWith" is-in-client-template=true>
+					 <datasource type="DataSourceTagHelperType.Ajax" server-operation="true">
+						 <transport>
+							 <read url="WorkOrder/GetPCBuses"/>
+						 </transport>
+					 </datasource>
+				 </kendo-dropdownlist>*@
+				 <kendo-dropdownlist id="pcBus" name="pcBus" datatextfield="Name" datavaluefield="Id" bind-to=@pCBus index=-1 filter="FilterType.StartsWith" is-in-client-template=true>
+				 </kendo-dropdownlist>
+			</div>
+			<div class="form-group col-12 col-sm-12 col-md-6 col-lg-3 col-xl-3">
+				<h6 class="pt-3 text-center">Project *</h6>
+				 @*<kendo-dropdownlist id="project" name="project" datatextfield="Name" datavaluefield="Id" auto-bind="false" filter="FilterType.StartsWith" is-in-client-template=true> 
+					 <datasource type="DataSourceTagHelperType.Ajax" server-operation="true">
+						 <transport>
+							 <read url="WorkOrder/GetProjects"/>
+						 </transport>
+					 </datasource>
+				 </kendo-dropdownlist>*@
+				 <kendo-dropdownlist id="project" name="project" datatextfield="Name" datavaluefield="Id" bind-to=@project index=-1 filter="FilterType.StartsWith" is-in-client-template=true> 
+				 </kendo-dropdownlist>
+			</div>
+			<div class="form-group col-12 col-sm-12 col-md-6 col-lg-3 col-xl-3">
+				<h6 class="pt-3 text-center">Activity *</h6>
+				 @*<kendo-dropdownlist id="activity" name="activity" datatextfield="Name" datavaluefield="Id" auto-bind="false" filter="FilterType.StartsWith" is-in-client-template=true>
+					 <datasource type="DataSourceTagHelperType.Ajax" server-operation="true">
+						 <transport>
+							 <read url="WorkOrder/GetActivities"/>
+						 </transport>
+					 </datasource>
+				 </kendo-dropdownlist>*@
+				 <kendo-dropdownlist id="activity" name="activity" datatextfield="Name" datavaluefield="Id" bind-to=@activity index=-1 filter="FilterType.StartsWith" is-in-client-template=true>
+				 </kendo-dropdownlist>
+			</div>
+			<div class="form-group col-12 col-sm-12 col-md-6 col-lg-3 col-xl-3">
+				<h6 class="pt-3 text-center">Res Type *</h6>
+				 @*<kendo-dropdownlist id="resType" name="resType" datatextfield="Name" datavaluefield="Id" auto-bind="false" filter="FilterType.StartsWith" is-in-client-template=true>
+					 <datasource type="DataSourceTagHelperType.Ajax" server-operation="true">
+						 <transport>
+							 <read url="WorkOrder/GetResTypes"/>
+						 </transport>
+					 </datasource>
+				 </kendo-dropdownlist>*@
+				 <kendo-dropdownlist id="resType" name="resType" datatextfield="Name" datavaluefield="Id" bind-to=@resType index=-1 filter="FilterType.StartsWith" is-in-client-template=true>
+				 </kendo-dropdownlist>
+			</div>
+		</div>
+
+		@* Block for set of data that includes sign info and map component ******************************************************************************************** *@
+
+		<div id="sign-container">
+			@*<div id="sign-form-1">
+
+				<hr />
+
+				<div id="padding-y-1" class="row py-3">
+					<div id="left-1" class="form-group col-12 col-sm-12 col-md-6 col-lg-6 col-xl-6">
+						<div id="first-row-1" class="row pt-3">
+							<div id="first-row-left-1" class="form-group col-12 col-sm-12 col-md-6 col-lg-6 col-xl-6">
+								<h6 class="pt-3 align-text-bottom">NIGP :</h6>
+								<kendo-textarea id="nigp-1" name="nigp" is-in-client-template=true>
+								</kendo-textarea>
+							</div>
+
+							<div id="first-row-right-1" class="form-group col-12 col-sm-12 col-md-6 col-lg-6 col-xl-6">
+								<h6 class="pt-3">Quantity:</h6>
+								<kendo-numerictextbox id="quantity-1" name="quantity" value="1" format="n0" min="1" max="10" is-in-client-template=true>
+								</kendo-numerictextbox>
+							</div>
+						</div>
+					
+						<h6 class="align-text-bottom, pt-3">Image Upload</h6>
+						<kendo-upload id="files-1" name="files" multiple="false" show-file-list="true" is-in-client-template=true>
+							<async auto-upload="true" 
+								save-url="@Url.Action("SaveUploadedImage", "WorkOrder")" 
+								remove-url="@Url.Action("Remove","Upload")" />
+						</kendo-upload>
+
+						<div id="second-row-1" class="row pt-3">
+							<div id="second-row-left-1" class="form-group col-12 col-sm-12 col-md-6 col-lg-6 col-xl-6">
+								<h6 class="pt-3">Latitude:</h6>
+								<kendo-textarea id="latitude-1" name="latitude" is-in-client-template=true>
+								</kendo-textarea>
+							</div>
+
+							<div id="second-row-right-1" class="form-group col-12 col-sm-12 col-md-6 col-lg-6 col-xl-6">
+								<h6 class="pt-3">Longitude:</h6>
+								<kendo-textarea id="longitude-1" name="longitude" is-in-client-template=true>
+								</kendo-textarea>
+							</div>
+						</div>
+					
+						<h6 class="pt-3">Instructions:</h6>
+						<kendo-textarea  id="instructions-1" name="instructions" rows="2" is-in-client-template=true>
+						</kendo-textarea>
+						<h6 class="pt-3">Special Instructions:</h6>
+						<kendo-textarea id="specialInstructions-1" name="specialInstructions" rows="3" is-in-client-template=true>
+						</kendo-textarea>
+					</div>
+
+					<div id="right-1" class="form-group pt-3 col-12 col-sm-12 col-md-6 col-lg-6 col-xl-6">
+						<kendo-map id="map-1" name="map" is-in-client-template=true center="new double[] { 27.8006, -97.3964 }" zoom="11" on-click="onClick" style="height:510px">
+							<layer-defaults>
+								<map-marker>
+									<tooltip>
+										<popup-animation>
+											<open duration="1200" effects="zoom:in" />
+										</popup-animation>
+									</tooltip>
+								</map-marker>
+							</layer-defaults>
+							<markers>
+								<map-marker location="new double[] { 30.268107, -97.744821 }"  shape="MapMarkersShape.PinTarget">
+									<tooltip content="Corpus Christi, TX"></tooltip>
+								</map-marker>
+							</markers>
+							<layers>
+								<layer type="MapLayerType.Bing"
+									imagery-set="MapLayersImagerySet.AerialWithLabels"
+									key="AqaPuZWytKRUA8Nm5nqvXHWGL8BDCXvK8onCl2PkC581Zp3T_fYAQBiwIphJbRAK">
+								</layer>
+							</layers>
+						</kendo-map>
+					</div>
+				</div>
+			</div>*@
+		</div>
+
+		
+
+
+		@*<div id="sign-form">
+
+			<hr />
+
+			<div class="row pt-3">
+				<div class="form-group col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4">
+					<h6 class="align-text-bottom">NIGP :</h6>
+					<kendo-dropdownlist id="nigp" name="nigp" datatextfield="Name" datavaluefield="Id" auto-bind="false" filter="FilterType.StartsWith" is-in-client-template=true>
+					 <datasource type="DataSourceTagHelperType.Ajax" server-operation="true">
+						 <transport>
+							 <read url="WorkOrder/GetNIGPs"/>
+						 </transport>
+					 </datasource>
+				 </kendo-dropdownlist>
+					<h6 class="pt-3">Quantity:</h6>
+					<kendo-numerictextbox id="quantity" name="quantity" is-in-client-template=true>
+					</kendo-numerictextbox>
+					<h6 class="pt-3">Instructions:</h6>
+					<kendo-textarea  id="instructions" name="instructions" rows="4" is-in-client-template=true>
+					</kendo-textarea>
+				</div>
+
+				<div class="form-group col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4">
+					<h6 class="align-text-bottom">Image Upload</h6>
+					<kendo-upload id="files" name="files" multiple="false" is-in-client-template=true>
+						<async auto-upload="true" 
+							save-url="@Url.Action("SaveUploadedImage", "WorkOrder")" 
+							remove-url="@Url.Action("Remove","Upload")" />
+					</kendo-upload>
+					<div class="row pt-3">
+						<div class="form-group col-6 col-sm-6 col-md-6 col-lg-6 col-xl-6">
+							<h6 class="pt-3">Latitude:</h6>
+							<kendo-textarea id="latitude" name="latitude" is-in-client-template=true>
+							</kendo-textarea>
+						</div>
+						<div class="form-group col-6 col-sm-6 col-md-6 col-lg-6 col-xl-6">
+							<h6 class="pt-3">Longitude:</h6>
+							<kendo-textarea id="longitude" name="longitude" is-in-client-template=true>
+							</kendo-textarea>
+						</div>
+					</div>
+				</div>
+
+				<div class="form-group col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4">
+					<kendo-map name="map" is-in-client-template=true center="new double[] { 27.8006, -97.3964 }" zoom="11" on-click="onClick" style="max-height:300px">
+						<layer-defaults>
+							<map-marker>
+								<tooltip>
+									<popup-animation>
+										<open duration="1200" effects="zoom:in" />
+									</popup-animation>
+								</tooltip>
+							</map-marker>
+						</layer-defaults>
+						<markers>
+							<map-marker location="new double[] { 30.268107, -97.744821 }"  shape="MapMarkersShape.PinTarget">
+								<tooltip content="Corpus Christi, TX"></tooltip>
+							</map-marker>
+						</markers>
+						<layers>
+							<layer type="MapLayerType.Bing"
+								imagery-set="MapLayersImagerySet.AerialWithLabels"
+								key="AqaPuZWytKRUA8Nm5nqvXHWGL8BDCXvK8onCl2PkC581Zp3T_fYAQBiwIphJbRAK">
+							</layer>
+						</layers>
+					</kendo-map>
+				</div>
+			</div>
+
+			<div class="row py-3">
+				<div class="form-group col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+					<h6 class="pt-3">Special Instructions</h6>
+					<kendo-textarea id="specialInstructions" name="specialInstructions" rows="5" is-in-client-template=true>
+					</kendo-textarea>
+				</div>
+			</div>
+		</div>*@
+
+		<div class="text-center">
+			<kendo-button theme-color="ThemeColor.Primary" name="textButton" is-in-client-template=true on-click="addSegment"> Add New Sign </kendo-button>
+		</div>
+
+		<hr style="height:5px;background-color:black" />
+
+		@* Block for requested and approved by section *@
+
+		<div class="row pt-3">
+			<div class="form-group col-12 col-sm-4 col-md-4 col-lg-2 col-xl-2">
+				<h6 class="align-text-bottom">Maintenance Section Requestor *&nbsp;</h6>
+			</div>
+			<div class="form-group col-12 col-sm-8 col-md-8 col-lg-5 col-xl-5">
+				 <kendo-dropdownlist id="requestedByMaintenance" name="requestedByMaintenance" datatextfield="ContactFullName" datavaluefield="Id" bind-to=@maintSectionRequestor filter="FilterType.StartsWith" is-in-client-template=true>
+				 </kendo-dropdownlist>
+			</div>
+			<div class="form-group col-12 col-sm-4 col-md-4 col-lg-1 col-xl-1">
+				<h6>Date *&nbsp;</h6>
+			</div>
+			<div class="form-group col-12 col-sm-8 col-md-8 col-lg-4 col-xl-4">
+				<kendo-datepicker id="requestedByMaintenanceDate" name='requestedByMaintenanceDate' format="MMM-dd-yyyy" is-in-client-template=true>
+				</kendo-datepicker>
+			</div>
+		</div>
+
+		<div class="row pt-3">
+			<div class="form-group col-12 col-sm-4 col-md-4 col-lg-2 col-xl-2">
+				<h6 class="align-text-bottom">Maintenance Section Approval &nbsp;</h6>
+			</div>
+			<div class="form-group col-12 col-sm-8 col-md-8 col-lg-5 col-xl-5">
+				 <kendo-dropdownlist id="approvedByMaintenance" name="approvedByMaintenance" datatextfield="ContactFullName" datavaluefield="Id" bind-to=@maintSectionApprover index=-1 filter="FilterType.StartsWith" is-in-client-template=true>
+				 </kendo-dropdownlist>
+			</div>
+			<div class="form-group col-12 col-sm-4 col-md-4 col-lg-1 col-xl-1">
+				<h6>Date&nbsp;</h6>
+			</div>
+			<div class="form-group col-12 col-sm-8 col-md-8 col-lg-4 col-xl-4">
+				<kendo-datepicker id="approvedByMaintenanceDate" name="approvedByMaintenanceDate" format="MMM-dd-yyyy" is-in-client-template=true>
+				</kendo-datepicker>
+			</div>
+		</div>
+
+		<div class="row pt-3">
+			<div class="form-group col-12 col-sm-4 col-md-4 col-lg-2 col-xl-2">
+				<h6 class="align-text-bottom">Area Engineer Approval (if needed)&nbsp;</h6>
+			</div>
+			<div class="form-group col-12 col-sm-8 col-md-8 col-lg-5 col-xl-5">
+				<kendo-dropdownlist id="approvedByAreaEngineer" name="approvedByAreaEngineer" datatextfield="ContactFullName" datavaluefield="Id" bind-to=@areaEngineer index=-1 filter="FilterType.StartsWith" is-in-client-template=true>
+				</kendo-dropdownlist>
+			</div>
+			<div class="form-group col-12 col-sm-4 col-md-4 col-lg-1 col-xl-1">
+				<h6>Date&nbsp;</h6>
+			</div>
+			<div class="form-group col-12 col-sm-8 col-md-8 col-lg-4 col-xl-4">
+				<kendo-datepicker id="approvedByAreaEngineerDate" name="approvedByAreaEngineerDate" format="MMM-dd-yyyy" is-in-client-template=true>
+				</kendo-datepicker>
+			</div>
+		</div>
+
+		<div class="row pt-3">
+			<div class="form-group col-12 col-sm-4 col-md-4 col-lg-2 col-xl-2">
+				<h6 class="align-text-bottom">District Approval &nbsp;</h6>
+			</div>
+			<div class="form-group col-12 col-sm-8 col-md-8 col-lg-5 col-xl-5">
+				 <kendo-dropdownlist id="approvedByDistrict" name="approvedByDistrict" datatextfield="ContactFullName" datavaluefield="Id" bind-to=@districtApprover index=-1 filter="FilterType.StartsWith" is-in-client-template=true>
+				 </kendo-dropdownlist>
+			</div>
+			<div class="form-group col-12 col-sm-4 col-md-4 col-lg-1 col-xl-1">
+				<h6>Date&nbsp;</h6>
+			</div>
+			<div class="form-group col-12 col-sm-8 col-md-8 col-lg-4 col-xl-4">
+				<kendo-datepicker id="approvedByDistrictDate" name="approvedByDistrictDate" format="MMM-dd-yyyy" is-in-client-template=true>
+				</kendo-datepicker>
+			</div>
+		</div>
+
+		<div class="row pt-3">
+			<div class="form-group col-12 col-sm-4 col-md-4 col-lg-2 col-xl-2">
+				<h6 class="align-text-bottom">Recieved on&nbsp;</h6>
+			</div>
+			
+			<div class="form-group col-12 col-sm-4 col-md-4 col-lg-2 col-xl-2">
+				<kendo-datepicker id="signReceivedOnDate" name="signReceivedOnDate" format="MMM-dd-yyyy" is-in-client-template=true>
+				</kendo-datepicker>
+			</div>
+		</div>
+
+		<div class="row pt-3">
+			<div class="form-group col-12 col-sm-4 col-md-4 col-lg-2 col-xl-2">
+				<h6 class="align-text-bottom">Installed on&nbsp;</h6>
+			</div>
+			
+			<div class="form-group col-12 col-sm-4 col-md-4 col-lg-2 col-xl-2">
+				<kendo-datepicker id="signInstalledOnDate" name="signInstalledOnDate" format="MMM-dd-yyyy" is-in-client-template=true>
+				</kendo-datepicker>
+			</div>
+		</div>
+
+		@*<div class="row pt-3">
+			<div class="form-group col-6 col-sm-6 col-md-6 col-lg-6 col-xl-6">
+				<kendo-button name="notify" theme-color="ThemeColor.Primary" on-click=@Url.Action("SendMail", "WorkOrder") is-in-client-template=true>
+					Notify District
+				</kendo-button>
+				 <input type="submit" value="Notify" onclick="location.href='@Url.Action("SendMail", "WorkOrder")'" style="float:right;"/>
+			</div>
+			<div class="form-group col-6 col-sm-6 col-md-6 col-lg-6 col-xl-6">
+				 <kendo-button class="export-pdf" name="exportPDF" theme-color="ThemeColor.Primary" is-in-client-template=true>
+					Export to PDF
+				</kendo-button>
+				<input type="button" value="Export PDF" onclick="CreatePDF()" />
+			</div>
+			<div class="form-group col-6 col-sm-6 col-md-6 col-lg-6 col-xl-6">
+				 <kendo-button class="export-pdf" name="exportPDF" theme-color="ThemeColor.Primary" is-in-client-template=true>
+					Export to PDF
+				</kendo-button>
+				<input type="button" value="Save" onclick="SaveWorkOrder()" />
+				<input type="button" value="Update" onclick="UpdateWorkOrder()" />
+			</div>
+		</div>*@
+	</form>
+</div>

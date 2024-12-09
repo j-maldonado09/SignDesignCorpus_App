@@ -1,0 +1,57 @@
+﻿@using SignDesignCorpus;
+@model IEnumerable<SignShop>
+
+<h1>
+	Catalog of Sign Shops
+</h1>
+
+<kendo-grid name="grid" height="550">
+    <datasource type="DataSourceTagHelperType.Ajax" page-size="20" server-operation="true" on-error="fnShowError">
+        <transport>
+            <create url="SignShop/Create" />
+            <read url="SignShop/Read" />
+            <update url="SignShop/Update" />
+            <destroy url="SignShop/Delete" />
+        </transport>
+        <schema>
+            <model id="Id">
+                <fields>
+                    <field name="Id" type="number" editable="false"></field>
+                    <field name="Name" type="String"></field>
+                    <field name="City" type="String"></field>
+                    <field name="State" type="String"></field>
+                    <field name="ZipCode" type="String"></field>
+                    <field name="Phone" type="String"></field>
+                    <field name="Email" type="String"></field>
+                </fields>
+            </model>
+        </schema>
+    </datasource>
+    <editable mode="inline" />
+    <groupable enabled="true" />
+    <sortable enabled="true" />
+    <filterable enabled="true" />
+    <pageable button-count="5" refresh="true" page-sizes="new int[] { 5, 10, 20 }">
+    </pageable>
+    <toolbar> <!-- Enable the built-in grid's Toolbar commands "create", "save", and "cancel". -->
+        <toolbar-button name="create" text="Add new record"></toolbar-button> <!-- Adds an empty row to the grid to create a new record. -->
+    </toolbar>
+    <columns>
+        <column field="Name" title="Name" />
+        <column field="City" title="City" />
+        <column field="State" title="State" width="80"/>
+        <column field="ZipCode" title="Zip Code" width="100"/>
+        <column field="Phone" title="Phone" width="100"/>
+        <column field="Email" title="Email" />
+        <column width="220">
+            <commands>
+                <column-command text="Edit" name="edit"></column-command>
+                <column-command text="Delete" name="destroy"></column-command>
+            </commands>
+        </column>
+    </columns>
+</kendo-grid>
+
+<div id="messageDialog">
+
+</div>

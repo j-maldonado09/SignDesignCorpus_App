@@ -1,0 +1,76 @@
+﻿<h1>
+	Work Orders Report
+</h1>
+
+<kendo-grid name="workOrderReportGrid" on-data-bound="onWorkOrderDataBound" height="750">
+    <datasource type="DataSourceTagHelperType.Ajax" page-size="20" server-operation="true" on-error="fnShowError">
+        <transport>
+            <read url="WorkOrderReport/Read" />
+        </transport>
+        <schema>
+            <model id="Id">
+                <fields>
+                    <field name="Id" type="number" editable="false"></field>
+                    <field name="OrderNumber" type="String"></field>
+                    <field name="MaterialRequestedFromId" type="number" editable="false"></field>
+                    <field name="MaterialRequestedFromName" type="String"></field>
+                    <field name="MaterialRequestedById" type="number" editable="false"></field>
+                    <field name="MaterialRequestedByName" type="String"></field>
+                    <field name="Status" type="String"></field>
+                    <field name="StatusDate" type="Date"></field>
+                </fields>
+            </model>
+        </schema>
+        <groups>
+            <group field="MaterialRequestedByName"></group>
+        </groups>
+    </datasource>
+    <toolbar>
+            <toolbar-button name="excel"></toolbar-button>
+            <toolbar-button name="pdf"></toolbar-button>
+    </toolbar>
+    <excel file-name="WorkOrdersReport.xlsx" all-pages="true"/>
+    <pdf file-name="WorkOrdersReport.pdf" />
+    <groupable enabled="true" />
+    <sortable enabled="true" />
+    <filterable enabled="true" />
+    <pageable button-count="5" refresh="true" page-sizes="new int[] { 5, 10, 20 }">
+    </pageable>
+    <columns>
+        <column field="Id" title="Id" hidden=true/>
+        @*<column field="Number" title="Number" />*@
+        @*<column field="Number" template="#=template(data)#" title="Number" />*@
+        <column field="OrderNumber" title="Number"  width="180"/>
+        <column field="MaterialRequestedFromId" title="Requested From" hidden=true/>
+        <column field="MaterialRequestedFromName" title="Requested From"  width="200"/>
+        <column field="MaterialRequestedById" title="Requested By" hidden=true/>
+        <column field="MaterialRequestedByName" title="Requested By"/>
+        @*<column field="Status" title="Status"  width="180"/>*@
+        <column name="StatusColumn" field="Status" title="Status"  width="180" class="statusCSS"/>
+        <column field="StatusDate" title="Date" format="{0:yyyy/MM/dd}"  width="180"/>
+    </columns>
+</kendo-grid>
+
+<script>
+    // Set the work order number by merging the maintenance section number and the work order id ***************** 
+    function template(data) {
+        return `<div> ${ data.MaterialRequestedByNumber}-${ data.Id} <div/>`
+    }
+
+    // Set template for 'Status' column in work order grid ********************************************
+    function onWorkOrderDataBound(e){
+        var grid = this;
+        grid.table.find("tr").each(function () {
+            var dataItem = grid.dataItem(this);
+
+            //alert(dataItem.Status);
+            $("td:contains('CREATED')").addClass("status-css-created");
+            $("td:contains('REQUESTED')").addClass("status-css-requested");
+            $("td:contains('APPROVED')").addClass("status-css-approved");
+            $("td:contains('RECEIVED')").addClass("status-css-received");
+            $("td:contains('INSTALLED')").addClass("status-css-installed");
+
+            kendo.bind($(this), dataItem);
+        });
+    }
+</script>
