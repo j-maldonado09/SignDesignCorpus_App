@@ -772,7 +772,8 @@
     // imageName must be of type string
     function createUpload(imageName) {
         var image = [];
-    
+        let isReplacingFile = false;
+        console.log("hiiii isReplacingFile", isReplacingFile)
         if (typeof imageName != "string")
             imageName = null;
 
@@ -789,7 +790,26 @@
                 autoUpload: true
             },
             files: image,
-            success: onUploadSuccess
+            success: onUploadSuccess,
+            select: function(){
+                isReplacingFile = true; //set flag on file selection
+            },
+            remove: function (e) {
+                if(isReplacingFile){
+                    isReplacingFile = false; //reset flag after replacement
+                    return;
+                }
+                e.preventDefault(); //prevent default removal
+                showConfirmationDialog("Delete File", "Are you sure you want to delete the uploaded file?", function () {
+                    var fileNames = e.files.map(file => file.name);
+                    $.ajax({
+                        url: '/WorkOrder/RemoveUploadedImage',
+                        type: 'POST',
+                        data: { fileNames: fileNames },
+                        traditional: true                        
+                    });
+                });
+            }
         });
 
         // if length of array is greater than zero, it means that an image already exists (an existing record is being edited)
@@ -856,6 +876,21 @@
         if (attachment.length > 0) {
             onUploadAttachmentSuccessAux();
         }
+    }
+
+    // Function to create a confirmation dialog ***************************************************************************
+    // title, message must be of type string and onConfirm must be a function
+    function showConfirmationDialog(title, message, onConfirm) {
+        $('<div></div>').kendoDialog({
+            title: title,
+            content: `<p>${message}</p>`,
+            actions: [
+                { text: 'Yes', primary: true, action: onConfirm },
+                { text: 'No', primary: false, action: function () { return true; } }
+            ],
+            width: "400px",
+            modal: true
+        }).data("kendoDialog").open();
     }
 
     // Upload Control Success Event *********************************************************************************************************************
