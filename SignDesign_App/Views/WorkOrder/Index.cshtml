@@ -805,7 +805,11 @@
                         url: '/WorkOrder/RemoveUploadedImage',
                         type: 'POST',
                         data: { fileNames: fileNames },
-                        traditional: true                        
+                        traditional: true,
+                        success: function() { //on successful confirmation, update html
+                            $('#files-' + cloneCount).closest('.k-upload').find('.k-upload-files').remove();
+                            $('#files-' + cloneCount).closest('.k-upload').addClass("k-upload-empty k-valid");
+                        }
                     });
                 });
             }
