@@ -171,10 +171,13 @@
             isNew = false;
             workOrderId = e.model.get('Id');
 
-            //update text from Update to Submit for users and supervisors
-            if ("@currentUserRole" == "SUPERVISOR" || "@currentUserRole" == "USER")
+            //update text for Update button
+            if ("@currentUserRole" == "SUPERVISOR" || "@currentUserRole" == "USER") //change to Submit for users and supervisors
             {
                 $('span:contains(Update)').text('Submit');
+            }
+            else if("@currentUserRole" == "ADMIN"){ //change to Approve for admins
+				$('span:contains(Update)').text('Approve');
             }
             $.ajax({
                 type: 'GET',
