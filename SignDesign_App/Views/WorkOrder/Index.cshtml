@@ -170,6 +170,12 @@
         if (!e.model.isNew()) {
             isNew = false;
             workOrderId = e.model.get('Id');
+
+            //update text from Update to Submit for users and supervisors
+            if ("@currentUserRole" == "SUPERVISOR" || "@currentUserRole" == "USER")
+            {
+                $('span:contains(Update)').text('Submit');
+            }
             $.ajax({
                 type: 'GET',
                 url: '/WorkOrder/ReadWorkOrders',
