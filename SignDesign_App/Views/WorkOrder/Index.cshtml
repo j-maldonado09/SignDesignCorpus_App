@@ -789,9 +789,12 @@
                 autoUpload: true
             },
             files: image,
-            success: onUploadSuccess,
             select: function(){
-                isReplacingFile = true; //set flag on file selection
+                isReplacingFile = true; //reset flag on file selection
+            },
+            success: function(e){
+                isReplacingFile = false; //reset flag after successful upload
+                onUploadSuccess(e);
             },
             remove: function (e) {
                 if(isReplacingFile){
@@ -808,7 +811,9 @@
                         traditional: true,
                         success: function() { //on successful confirmation, update html
                             $('#files-' + cloneCount).closest('.k-upload').find('.k-upload-files').remove();
-                            $('#files-' + cloneCount).closest('.k-upload').addClass("k-upload-empty k-valid");
+                            $('#files-' + cloneCount).closest('.k-upload').addClass("k-upload-empty");
+                            $('#files-' + cloneCount).closest('.k-upload').find('.k-upload-status').remove(); //remove upload status                            
+                            $('#files-' + cloneCount).closest('.k-upload').find('.k-dropzone-hint').removeClass('k-hidden'); //remove k-hidden class
                         }
                     });
                 });
