@@ -772,7 +772,8 @@
     // imageName must be of type string
     function createUpload(imageName) {
         var image = [];
-        let isReplacingFile = false;
+        var isReplacingFile = false;
+
         if (typeof imageName != "string")
             imageName = null;
 
@@ -797,26 +798,7 @@
                 onUploadSuccess(e);
             },
             remove: function (e) {
-                if(isReplacingFile){
-                    isReplacingFile = false; //reset flag after replacement
-                    return;
-                }
-                e.preventDefault(); //prevent default removal
-                showConfirmationDialog("Delete File", "Are you sure you want to delete the uploaded file?", function () {
-                    var fileNames = e.files.map(file => file.name);
-                    $.ajax({
-                        url: '/WorkOrder/RemoveUploadedImage',
-                        type: 'POST',
-                        data: { fileNames: fileNames },
-                        traditional: true,
-                        success: function() { //on successful deletion, update html
-                            $('#files-' + cloneCount).closest('.k-upload').find('.k-upload-files').remove();
-                            $('#files-' + cloneCount).closest('.k-upload').addClass("k-upload-empty");
-                            $('#files-' + cloneCount).closest('.k-upload').find('.k-upload-status').remove(); //remove upload status                            
-                            $('#files-' + cloneCount).closest('.k-upload').find('.k-dropzone-hint').removeClass('k-hidden'); //remove k-hidden class
-                        }
-                    });
-                });
+                onFileRemoval(e, 'files', cloneCount, isReplacingFile);
             }
         });
 
@@ -830,6 +812,7 @@
     // imageName must be of type string
     function createUploadInstalled(imageInstalledName) {
         var imageInstalled = [];
+        var isReplacingFile = false;
 
         if (typeof imageInstalledName != "string")
             imageInstalledName = null;
@@ -847,7 +830,16 @@
                 autoUpload: true
             },
             files: imageInstalled,
-            success: onInstalledImageUploadSuccess
+            select: function(){
+                isReplacingFile = true; //reset flag on file selection
+            },
+            success: function(e){
+                isReplacingFile = false; //reset flag after successful upload
+                onInstalledImageUploadSuccess(e);
+            },
+            remove: function (e) {
+                onFileRemoval(e, 'files-installed', cloneCount, isReplacingFile);
+            }
         });
 
         // if length of array is greater than zero, it means that an image already exists (an existing record is being edited)
@@ -860,6 +852,7 @@
     // attachmentName must be of type string
     function createUploadAttachment(attachmentName) {
         var attachment = [];
+        var isReplacingFile = false;
 
         if (typeof attachmentName != "string")
             attachmentName = null;
@@ -877,13 +870,48 @@
                 autoUpload: true
             },
             files: attachment,
-            success: onUploadAttachmentSuccess
+            select: function(){
+                isReplacingFile = true; //reset flag on file selection
+            },
+            success: function(e){
+                isReplacingFile = false; //reset flag after successful upload
+                onUploadAttachmentSuccess(e);
+            },
+            remove: function (e) {
+                onFileRemoval(e, 'attachments', cloneCount, isReplacingFile);
+            }
         });
 
         // if length of array is greater than zero, it means that an image already exists (an existing record is being edited)
         if (attachment.length > 0) {
             onUploadAttachmentSuccessAux();
         }
+    }
+
+     // On image, attachment, image installed remove event *********************************************************************************************************************
+    function onFileRemoval(e, uploadType, cloneCount, isReplacingFile) {
+        if(isReplacingFile){
+            isReplacingFile = false; //reset flag after replacement
+            return;                    
+        }
+        e.preventDefault(); //prevent default removal
+        showConfirmationDialog("Delete File", "Are you sure you want to delete the uploaded file?", function () {
+            var fileNames = e.files.map(file => file.name);
+            $.ajax({
+                url: '/WorkOrder/RemoveUploadedImage',
+                type: 'POST',
+                data: { fileNames: fileNames },
+                traditional: true,
+                success: function() { //on successful deletion, update html
+                    var selectorPrefix = '#' + uploadType + '-' + cloneCount;
+                    var $uploadElement = $(selectorPrefix).closest('.k-upload');
+                    $uploadElement.find('.k-upload-files').remove();
+                    $uploadElement.addClass("k-upload-empty");
+                    $uploadElement.find('.k-upload-status').remove(); //remove upload status
+                    $uploadElement.find('.k-dropzone-hint').removeClass('k-hidden'); //remove k-hidden class
+                }
+            });                    
+        });
     }
 
     // Function to create a confirmation dialog ***************************************************************************
