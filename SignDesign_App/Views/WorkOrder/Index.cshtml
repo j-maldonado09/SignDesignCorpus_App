@@ -809,7 +809,7 @@
                         type: 'POST',
                         data: { fileNames: fileNames },
                         traditional: true,
-                        success: function() { //on successful confirmation, update html
+                        success: function() { //on successful deletion, update html
                             $('#files-' + cloneCount).closest('.k-upload').find('.k-upload-files').remove();
                             $('#files-' + cloneCount).closest('.k-upload').addClass("k-upload-empty");
                             $('#files-' + cloneCount).closest('.k-upload').find('.k-upload-status').remove(); //remove upload status                            
