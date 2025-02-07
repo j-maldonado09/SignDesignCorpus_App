@@ -403,6 +403,11 @@ namespace SignDesignCorpusApp.Controllers
             {
                 case "USER":
                     applicationUsers = GetUsersInRole("SUPERVISOR").Result.ToList();
+
+                    //filter supervisor that belongs to user's maintenance section
+                    applicationUsers = applicationUsers
+                        .Where(user => user.MaintenanceSectionId == currentUser.MaintenanceSectionId)
+                        .ToList();
                     break;
                 case "SUPERVISOR":
                     applicationUsers = GetUsersInRole("ADMIN").Result.ToList();
