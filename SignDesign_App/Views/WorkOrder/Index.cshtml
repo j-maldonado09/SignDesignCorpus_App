@@ -224,7 +224,6 @@
             $('#approvedByAreaEngineerDate').data("kendoDatePicker").enable(false);
         }
         else if("@currentUserRole" == "SUPERVISOR") {
-            $('<button type="button" class="k-button k-button-md k-button-rectangle k-rounded-md k-button-solid k-button-solid-dark" onclick="notifyButton()"><span class="k-icon k-i-bell k-button-icon"></span><span class="k-button-text">Notify</span></button>').insertAfter(".k-grid-update");
             $('#approvedByAreaEngineer').data("kendoDropDownList").enable(false);
             $('#approvedByAreaEngineerDate').data("kendoDatePicker").enable(false);
             $('#approvedByDistrict').data("kendoDropDownList").enable(false);
