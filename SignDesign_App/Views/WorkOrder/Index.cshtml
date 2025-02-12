@@ -271,7 +271,10 @@
             url: '/WorkOrder/SendMail',
             contentType: 'application/json; charset=utf-8',
             success: function (result) {
-                fnShowMessage("Notification sent", "Success");
+                if("@currentUserRole" == "SUPERVISOR")
+                    fnShowMessage("Information updated and notification sent", "Success");
+                else
+                    fnShowMessage("Notification sent", "Success");
             },
             error: function (xhr, textStatus, errorThrown) {
                 fnShowMessage(xhr.responseText, "Error");
@@ -1106,9 +1109,9 @@
             url: '/WorkOrder/Update',
             contentType: 'application/json; charset=utf-8',
             data: JSON.stringify(workOrder),
-            success: function (result) {
-                fnShowMessage("Information was updated", "Success");
+            success: function (result) {                
                 RefreshGrid();
+                notifyButton(); //notify admins on work order update
             },
             error: function (xhr, textStatus, errorThrown) {
                 fnShowMessage(xhr.responseText, "Error");
