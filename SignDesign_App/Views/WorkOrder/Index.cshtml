@@ -281,7 +281,7 @@
             contentType: 'application/json; charset=utf-8',
             success: function (result) {
                 if("@currentUserRole" == "SUPERVISOR")
-                    fnShowMessage("Information updated and notification sent", "Success");
+                    fnShowMessage("Information added/updated and notification sent", "Success");
                 else
                     fnShowMessage("Notification sent", "Success");
             },
@@ -1099,8 +1099,9 @@
             contentType: 'application/json; charset=utf-8',
             data: JSON.stringify(workOrder),
             success: function (result) {
-                fnShowMessage("Work order was created", "Success");
                 RefreshGrid();
+                if("@currentUserRole" == "SUPERVISOR")
+                    notifyButton(); //notify on work order creation by supervisor
             },
             error: function (xhr, textStatus, errorThrown) {
                 //alert(xhr.textStatus + ", " + errorThrown + ", error");
@@ -1120,7 +1121,8 @@
             data: JSON.stringify(workOrder),
             success: function (result) {                
                 RefreshGrid();
-                notifyButton(); //notify admins on work order update
+                if("@currentUserRole" == "SUPERVISOR")
+                    notifyButton(); //notify admins on work order update
             },
             error: function (xhr, textStatus, errorThrown) {
                 fnShowMessage(xhr.responseText, "Error");
