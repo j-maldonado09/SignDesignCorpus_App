@@ -233,7 +233,6 @@
             $('#approvedByAreaEngineerDate').data("kendoDatePicker").enable(false);
         }
         else if("@currentUserRole" == "SUPERVISOR") {
-            $('<button type="button" class="k-button k-button-md k-button-rectangle k-rounded-md k-button-solid k-button-solid-dark" onclick="notifyButton()"><span class="k-icon k-i-bell k-button-icon"></span><span class="k-button-text">Notify</span></button>').insertAfter(".k-grid-update");
             $('#approvedByAreaEngineer').data("kendoDropDownList").enable(false);
             $('#approvedByAreaEngineerDate').data("kendoDatePicker").enable(false);
             $('#approvedByDistrict').data("kendoDropDownList").enable(false);
@@ -281,7 +280,10 @@
             url: '/WorkOrder/SendMail',
             contentType: 'application/json; charset=utf-8',
             success: function (result) {
-                fnShowMessage("Notification sent", "Success");
+                if("@currentUserRole" == "SUPERVISOR")
+                    fnShowMessage("Information added/updated and notification sent", "Success");
+                else
+                    fnShowMessage("Notification sent", "Success");
             },
             error: function (xhr, textStatus, errorThrown) {
                 fnShowMessage(xhr.responseText, "Error");
@@ -1096,8 +1098,11 @@
             url: '/WorkOrder/Create',
             contentType: 'application/json; charset=utf-8',
             data: JSON.stringify(workOrder),
-            success: function (result) {
-                fnShowMessage("Work order was created", "Success");
+            success: function (result) {               
+                if("@currentUserRole" == "SUPERVISOR")
+                    notifyButton(); //notify on work order creation by supervisor
+                else
+                    fnShowMessage("Work order was created", "Success");
                 RefreshGrid();
             },
             error: function (xhr, textStatus, errorThrown) {
@@ -1117,8 +1122,11 @@
             contentType: 'application/json; charset=utf-8',
             data: JSON.stringify(workOrder),
             success: function (result) {
-                fnShowMessage("Information was updated", "Success");
-                RefreshGrid();
+                if("@currentUserRole" == "SUPERVISOR")
+                    notifyButton(); //notify admins on work order update
+                else
+                    fnShowMessage("Information was updated", "Success");
+                RefreshGrid();    
             },
             error: function (xhr, textStatus, errorThrown) {
                 fnShowMessage(xhr.responseText, "Error");
