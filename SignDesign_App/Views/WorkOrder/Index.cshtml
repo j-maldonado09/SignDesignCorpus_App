@@ -1098,10 +1098,12 @@
             url: '/WorkOrder/Create',
             contentType: 'application/json; charset=utf-8',
             data: JSON.stringify(workOrder),
-            success: function (result) {
-                RefreshGrid();
+            success: function (result) {               
                 if("@currentUserRole" == "SUPERVISOR")
                     notifyButton(); //notify on work order creation by supervisor
+                else
+                    fnShowMessage("Work order was created", "Success");
+                RefreshGrid();
             },
             error: function (xhr, textStatus, errorThrown) {
                 //alert(xhr.textStatus + ", " + errorThrown + ", error");
@@ -1119,10 +1121,12 @@
             url: '/WorkOrder/Update',
             contentType: 'application/json; charset=utf-8',
             data: JSON.stringify(workOrder),
-            success: function (result) {                
-                RefreshGrid();
+            success: function (result) {
                 if("@currentUserRole" == "SUPERVISOR")
                     notifyButton(); //notify admins on work order update
+                else
+                    fnShowMessage("Information was updated", "Success");
+                RefreshGrid();    
             },
             error: function (xhr, textStatus, errorThrown) {
                 fnShowMessage(xhr.responseText, "Error");
