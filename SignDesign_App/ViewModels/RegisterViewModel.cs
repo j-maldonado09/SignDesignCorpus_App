@@ -22,7 +22,7 @@ namespace SignDesign_App.ViewModels
         [MaxLength(30)]
         public string OrganizationType { get; set; }
 
-        [Required(ErrorMessage = "Please enter your maintenance section")]
+        //[Required(ErrorMessage = "Please enter your maintenance section")]
         [DataType(DataType.Text)]
         [Display(Name = "Maintenance Section")]
         public int? MaintenanceSectionId { get; set; }

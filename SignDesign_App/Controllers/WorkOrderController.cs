@@ -12,6 +12,7 @@ using Microsoft.Net.Http.Headers;
 using SignDesign_App.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authorization;
+using System.Globalization;
 
 namespace SignDesignCorpusApp.Controllers
 {
@@ -39,6 +40,7 @@ namespace SignDesignCorpusApp.Controllers
         private IWebHostEnvironment _webHostEnvironment;
         private UserManager<ApplicationUser> _userManager;
 
+        // Contructor **************************************************************************************************************
         public WorkOrderController(IWorkOrderRepository workOrderRepository, IProjectRepository projectRepository, 
             IMaintenanceSectionContactRepository maintenanceSectionContact, 
             IResTypeRepository resTypeRepository, ITaskRepository taskRepository, IActivityRepository activityRepository, 
@@ -69,6 +71,8 @@ namespace SignDesignCorpusApp.Controllers
             _webHostEnvironment = webHostEnvironment;
             _userManager = userManager;
         }
+
+        // Index **************************************************************************************************************
         public IActionResult Index()
         {
             ViewData["regionalDistributionCenters"] = GetRegionalDistributionCenters();
@@ -95,12 +99,10 @@ namespace SignDesignCorpusApp.Controllers
             return View();
         }
 
-        //public async Task<int> CheckCurrentUserRole(IEnumerable<ApplicationUser> users)
+        //  **************************************************************************************************************
         public async Task<string> CheckCurrentUserRole(string role)
         {
             var currentUser = await _userManager.GetUserAsync(HttpContext.User);
-            //List<ApplicationUser> newUsers = users.ToList();
-            //return newUsers.IndexOf(currentUser);
             var roles = _userManager.GetRolesAsync(currentUser).Result;
             if (roles[0] == role)
                 return currentUser.Id;
@@ -108,6 +110,7 @@ namespace SignDesignCorpusApp.Controllers
                 return null;
         }
 
+        // Create **************************************************************************************************************
         [HttpPost]
         public IActionResult Create([DataSourceRequest] DataSourceRequest request, [FromBody] WorkOrderHelperModel workOrder)
         {
@@ -116,6 +119,7 @@ namespace SignDesignCorpusApp.Controllers
             return Json(new[] { workOrder }.ToDataSourceResult(request, ModelState));
         }
 
+        // Read all work orders (main grid) *****************************************************************************************
         public IActionResult Read([DataSourceRequest] DataSourceRequest request)
         {
             string result = _workOrderRepository.Read();
@@ -125,6 +129,7 @@ namespace SignDesignCorpusApp.Controllers
             return Json(dsResult);
         }
 
+        // Update **************************************************************************************************************
         [HttpPost]
         public IActionResult Update([DataSourceRequest] DataSourceRequest request, [FromBody] WorkOrderHelperModel workOrder)
         {
@@ -133,20 +138,7 @@ namespace SignDesignCorpusApp.Controllers
             return Json(new[] { workOrder }.ToDataSourceResult(request, ModelState));
         }
 
-        public JsonResult ReadWorkOrders(int id)
-        {
-            string result = _workOrderRepository.ReadWorkOrders(id);
-            _workOrderRepository.DisposeDBObjects();
-            return Json(result);
-        }
-
-        public JsonResult ReadMaintenanceSectionParameters(int? id)
-        {
-            string result = _maintenanceSectionRepository.ReadMaintenanceSectionParameters(id);
-            _maintenanceSectionRepository.DisposeDBObjects();
-            return Json(result);
-        }
-
+        // Delete **************************************************************************************************************
         [AcceptVerbs("Post")]
         public IActionResult Delete([DataSourceRequest] DataSourceRequest request, WorkOrderViewModel workOrder)
         {
@@ -155,14 +147,23 @@ namespace SignDesignCorpusApp.Controllers
             return Json(new[] { workOrder }.ToDataSourceResult(request, ModelState));
         }
 
-        //public IActionResult GetProjects([DataSourceRequest] DataSourceRequest request)
-        //{
-        //    string result = _projectRepository.Read();
-        //    IQueryable<Project> projects = JsonSerializer.Deserialize<List<Project>>(result).AsQueryable();
-        //    _projectRepository.DisposeDBObjects();
-        //    return Json(projects.ToDataSourceResult(request));
-        //}
+        // Read info of a specific work order (inside work order form) ************************************************************************
+        public JsonResult ReadWorkOrders(int id)
+        {
+            string result = _workOrderRepository.ReadWorkOrders(id);
+            _workOrderRepository.DisposeDBObjects();
+            return Json(result);
+        }
 
+        // Get the parameters (fields) values from a specific maintenance section **************************************************
+        public JsonResult ReadMaintenanceSectionParameters(int? id)
+        {
+            string result = _maintenanceSectionRepository.ReadMaintenanceSectionParameters(id);
+            _maintenanceSectionRepository.DisposeDBObjects();
+            return Json(result);
+        }
+
+        // Read projects **********************************************************************************************************
         public IEnumerable<Project> GetProjects()
         {
             string result = _projectRepository.Read();
@@ -171,14 +172,7 @@ namespace SignDesignCorpusApp.Controllers
             return projects;
         }
 
-        //public IActionResult GetResTypes([DataSourceRequest] DataSourceRequest request)
-        //{
-        //    string result = _resTypeRepository.Read();
-        //    IQueryable<ResType> resTypes = JsonSerializer.Deserialize<List<ResType>>(result).AsQueryable();
-        //    _resTypeRepository.DisposeDBObjects();
-        //    return Json(resTypes.ToDataSourceResult(request));
-        //}
-
+        // Read Res Types **************************************************************************************************************
         public IEnumerable<ResType> GetResTypes()
         {
             string result = _resTypeRepository.Read();
@@ -187,14 +181,7 @@ namespace SignDesignCorpusApp.Controllers
             return resTypes;
         }
 
-        //public IActionResult GetTasks([DataSourceRequest] DataSourceRequest request)
-        //{
-        //    string result = _taskRepository.Read();
-        //    IQueryable<Task_> tasks = JsonSerializer.Deserialize<List<Task_>>(result).AsQueryable();
-        //    _resTypeRepository.DisposeDBObjects();
-        //    return Json(tasks.ToDataSourceResult(request));
-        //}
-
+        // Read Tasks **************************************************************************************************************
         public IEnumerable<Task_> GetTasks()
         {
             string result = _taskRepository.Read();
@@ -203,14 +190,7 @@ namespace SignDesignCorpusApp.Controllers
             return tasks;
         }
 
-        //public IActionResult GetActivities([DataSourceRequest] DataSourceRequest request)
-        //{
-        //    string result = _activityRepository.Read();
-        //    IQueryable<Activity> activities = JsonSerializer.Deserialize<List<Activity>>(result).AsQueryable();
-        //    _activityRepository.DisposeDBObjects();
-        //    return Json(activities.ToDataSourceResult(request));
-        //}
-
+        // Read Activities **************************************************************************************************************
         public IEnumerable<Activity> GetActivities()
         {
             string result = _activityRepository.Read();
@@ -219,36 +199,14 @@ namespace SignDesignCorpusApp.Controllers
             return activities;
         }
 
-        //public IActionResult GetMaintenanceSectionContacts([DataSourceRequest] DataSourceRequest request)
-        //{
-        //    string result = _maintenanceSectionContactRepository.Read();
-        //    IQueryable<MaintenanceSectionContact> maintenanceSectionContacts = JsonSerializer.Deserialize<List<MaintenanceSectionContact>>(result).AsQueryable();
-        //    _projectRepository.DisposeDBObjects();
-        //    return Json(maintenanceSectionContacts.ToDataSourceResult(request));
-        //}
-
-        //public IEnumerable<MaintenanceSectionContact> GetMaintenanceSectionContacts()
-        //{
-        //    string result = _maintenanceSectionContactRepository.Read();
-        //    IEnumerable<MaintenanceSectionContact> maintenanceSectionContacts = JsonSerializer.Deserialize<List<MaintenanceSectionContact>>(result).AsEnumerable();
-        //    _maintenanceSectionContactRepository.DisposeDBObjects();
-        //    return maintenanceSectionContacts;
-        //}
-
+        // Read users from a role ************************************************************************************************
         public async Task<IEnumerable<ApplicationUser>> GetUsersInRole(string role)
         {
             IList<ApplicationUser> users = await _userManager.GetUsersInRoleAsync(role);
             return users;
         }
 
-        //public IActionResult GetPCBuses([DataSourceRequest] DataSourceRequest request)
-        //{
-        //    string result = _pcBusRepository.Read();
-        //    IQueryable<PCBus> pCBuses = JsonSerializer.Deserialize<List<PCBus>>(result).AsQueryable();
-        //    _pcBusRepository.DisposeDBObjects();
-        //    return Json(pCBuses.ToDataSourceResult(request));
-        //}
-
+        // Read PC Buses **************************************************************************************************************
         public IEnumerable<PCBus> GetPCBuses()
         {
             string result = _pcBusRepository.Read();
@@ -257,14 +215,7 @@ namespace SignDesignCorpusApp.Controllers
             return pCBuses;
         }
 
-        //public IActionResult GetAccounts([DataSourceRequest] DataSourceRequest request)
-        //{
-        //    string result = _accountRepository.Read();
-        //    IQueryable<Account> accounts = JsonSerializer.Deserialize<List<Account>>(result).AsQueryable();
-        //    _accountRepository.DisposeDBObjects();
-        //    return Json(accounts.ToDataSourceResult(request));
-        //}
-
+        // Read Accounts **************************************************************************************************************
         public IEnumerable<Account> GetAccounts()
         {
             string result = _accountRepository.Read();
@@ -273,14 +224,7 @@ namespace SignDesignCorpusApp.Controllers
             return accounts;
         }
 
-        //public IActionResult GetDistrictContacts([DataSourceRequest] DataSourceRequest request)
-        //{
-        //    string result = _districtContactRepository.Read();
-        //    IQueryable<DistrictContact> districtContacts = JsonSerializer.Deserialize<List<DistrictContact>>(result).AsQueryable();
-        //    _districtContactRepository.DisposeDBObjects();
-        //    return Json(districtContacts.ToDataSourceResult(request));
-        //}
-
+        // Read district contacts **************************************************************************************************************
         public IEnumerable<DistrictContact> GetDistrictContacts()
         {
             string result = _districtContactRepository.Read();
@@ -289,14 +233,7 @@ namespace SignDesignCorpusApp.Controllers
             return districtContacts;
         }
 
-        //public IActionResult GetRegionalDistributionCenters([DataSourceRequest] DataSourceRequest request)
-        //{
-        //    string result = _regionalDistributionCnterRepository.Read();
-        //    IQueryable<RegionalDistributionCenter> regionalDistributionCenters = JsonSerializer.Deserialize<List<RegionalDistributionCenter>>(result).AsQueryable();
-        //    _regionalDistributionCnterRepository.DisposeDBObjects();
-        //    return Json(regionalDistributionCenters.ToDataSourceResult(request));
-        //}
-
+        // Read RDCs **************************************************************************************************************
         public IEnumerable<RegionalDistributionCenter> GetRegionalDistributionCenters()
         {
             string result = _regionalDistributionCnterRepository.Read();
@@ -305,14 +242,7 @@ namespace SignDesignCorpusApp.Controllers
             return regionalDistributionCenters;
         }
 
-        //public IActionResult GetDepartments([DataSourceRequest] DataSourceRequest request)
-        //{
-        //    string result = _departmentRepository.Read();
-        //    IQueryable<Department> departments = JsonSerializer.Deserialize<List<Department>>(result).AsQueryable();
-        //    _departmentRepository.DisposeDBObjects();
-        //    return Json(departments.ToDataSourceResult(request));
-        //}
-
+        // Read departments **************************************************************************************************************
         public IEnumerable<Department> GetDepartments()
         {
             string result = _departmentRepository.Read();
@@ -321,14 +251,7 @@ namespace SignDesignCorpusApp.Controllers
             return departments;
         }
 
-        //public IActionResult GetFunds([DataSourceRequest] DataSourceRequest request)
-        //{
-        //    string result = _fundRepository.Read();
-        //    IQueryable<Fund> funds = JsonSerializer.Deserialize<List<Fund>>(result).AsQueryable();
-        //    _fundRepository.DisposeDBObjects();
-        //    return Json(funds.ToDataSourceResult(request));
-        //}
-
+        // Read funds **************************************************************************************************************
         public IEnumerable<Fund> GetFunds()
         {
             string result = _fundRepository.Read();
@@ -337,6 +260,7 @@ namespace SignDesignCorpusApp.Controllers
             return funds;
         }
 
+        // Read NIGPs **************************************************************************************************************
         public IActionResult GetNIGPs([DataSourceRequest] DataSourceRequest request)
         {
             string result = _nigpRepository.Read();
@@ -345,6 +269,7 @@ namespace SignDesignCorpusApp.Controllers
             return Json(nigps.ToDataSourceResult(request));
         }
 
+        // Read NIGPs (Auxiliary action) *******************************************************************************************************
         public string GetNIGPsAux()
         {
             string result = _nigpRepository.Read();
@@ -352,14 +277,7 @@ namespace SignDesignCorpusApp.Controllers
             return result;
         }
 
-        //public IActionResult GetMaintenanceSections([DataSourceRequest] DataSourceRequest request)
-        //{
-        //    string result = _maintenanceSectionRepository.Read();
-        //    IQueryable<MaintenanceSection> maintenanceSections = JsonSerializer.Deserialize<List<MaintenanceSection>>(result).AsQueryable();
-        //    _maintenanceSectionRepository.DisposeDBObjects();
-        //    return Json(maintenanceSections.ToDataSourceResult(request));
-        //}
-
+        // Read Maintenance sections **************************************************************************************************************
         public IEnumerable<MaintenanceSection> GetMaintenanceSections()
         {
             string result = _maintenanceSectionRepository.Read();
@@ -368,6 +286,15 @@ namespace SignDesignCorpusApp.Controllers
             return maintenanceSections;
         }
 
+        // Read Maintenance section name **************************************************************************************************************
+        public string GetMaintenanceSectionName(int? id)
+        {
+            string result = _maintenanceSectionRepository.Read(id);
+            List<MaintenanceSection> maintenanceSections = JsonSerializer.Deserialize<List<MaintenanceSection>>(result).AsEnumerable().ToList();
+            return maintenanceSections[0].Name;
+        }
+
+        // Read sign shops **************************************************************************************************************
         public IActionResult GetSignShops([DataSourceRequest] DataSourceRequest request)
         {
             string result = _signShopRepository.Read();
@@ -376,14 +303,7 @@ namespace SignDesignCorpusApp.Controllers
             return Json(signShops.ToDataSourceResult(request));
         }
 
-        //public IActionResult GetYears([DataSourceRequest] DataSourceRequest request)
-        //{
-        //    string result = _yearRepository.Read();
-        //    IQueryable<Year> years = JsonSerializer.Deserialize<List<Year>>(result).AsQueryable();
-        //    _yearRepository.DisposeDBObjects();
-        //    return Json(years.ToDataSourceResult(request));
-        //}
-
+        // Read years **************************************************************************************************************
         public IEnumerable<Year> GetYears()
         {
             string result = _yearRepository.Read();
@@ -392,6 +312,7 @@ namespace SignDesignCorpusApp.Controllers
             return years;
         }
 
+        // Sends notification email ***************************************************************************************************
         public async Task<IActionResult> SendMail()
         {
             var currentUser = await _userManager.GetUserAsync(HttpContext.User);
@@ -408,25 +329,32 @@ namespace SignDesignCorpusApp.Controllers
                     applicationUsers = applicationUsers
                         .Where(user => user.MaintenanceSectionId == currentUser.MaintenanceSectionId)
                         .ToList();
+
+                    foreach (ApplicationUser user in applicationUsers)
+                    {
+                        usersList += user.Email + ";";
+                    }
+                    usersList = usersList.Remove(usersList.Length - 1, 1);
+
                     break;
                 case "SUPERVISOR":
-                    applicationUsers = GetUsersInRole("ADMIN").Result.ToList();
+                    usersList = "CRP_Sign_Design@txdot.gov";
                     break;
             }
 
-            foreach (ApplicationUser user in applicationUsers)
-            {
-                usersList += user.Email + ";";
-            }
-            usersList = usersList.Remove(usersList.Length - 1, 1);
+            TextInfo textInfo = CultureInfo.CurrentCulture.TextInfo;
+            string maintenanceSectionName = textInfo.ToTitleCase(GetMaintenanceSectionName(currentUser.MaintenanceSectionId).ToLower());
 
-            string htmlMessage = "<h1>A new sign request has been updated</h1>" +
-                "<h3>Please login to your account to see updated request</h3>";
+            string htmlSubject = "Sign Request from " + maintenanceSectionName;
 
-            await _eMailSender.SendEmailAsync(usersList, "Sign Request", htmlMessage);
+            string htmlMessage = "<h2>A new sign request has been updated</h2>" +
+                "<h4>Please login to your account to see updated request</h4>";
+
+            await _eMailSender.SendEmailAsync(usersList, htmlSubject , htmlMessage);
             return View("Index");
         }
 
+        // Generate the PDF *****************************************************************************************************
         public string ExportPdf([FromBody] WorkOrderHelperModel workOrder)
         {
             string physicalPath = Path.Combine(_webHostEnvironment.WebRootPath);
@@ -532,7 +460,7 @@ namespace SignDesignCorpusApp.Controllers
             //return "SignRequest.pdf";
         }
 
-        // Saves the sign image that was uploaded with the kendo upload control
+        // Saves the sign image that was uploaded with the kendo upload control ***************************************************
         public async Task<ActionResult> SaveUploadedImage(IEnumerable<IFormFile> files)
         {
             // The Name attribute of the Kendo Upload component is "files" and it must match the parameter name of this action.
@@ -558,32 +486,32 @@ namespace SignDesignCorpusApp.Controllers
             return Content("");
         }
 
-        // Removed the sign image that was uploaded with the kendo upload control
+        // Removes the sign image that was uploaded with the kendo upload control *************************************************
         public ActionResult RemoveUploadedImage(string[] fileNames)
         {
-            // The parameter of the Remove action must be called "fileNames".
+            //// The parameter of the Remove action must be called "fileNames".
 
-            if (fileNames != null)
-            {
-                foreach (var fullName in fileNames)
-                {
-                    var fileName = Path.GetFileName(fullName);
-                    var physicalPath = Path.Combine(_webHostEnvironment.WebRootPath, "images", "signs", fileName);
+            //if (fileNames != null)
+            //{
+            //    foreach (var fullName in fileNames)
+            //    {
+            //        var fileName = Path.GetFileName(fullName);
+            //        var physicalPath = Path.Combine(_webHostEnvironment.WebRootPath, "images", "signs", fileName);
 
-                    // TODO: Verify user permissions.
+            //        // TODO: Verify user permissions.
 
-                    if (System.IO.File.Exists(physicalPath))
-                    {
-                        System.IO.File.Delete(physicalPath);
-                    }
-                }
-            }
+            //        if (System.IO.File.Exists(physicalPath))
+            //        {
+            //            System.IO.File.Delete(physicalPath);
+            //        }
+            //    }
+            //}
 
             // Return an empty string to signify success.
             return Content("");
         }
 
-        // Saves the installed sign image that was uploaded with the kendo upload control
+        // Saves the installed sign image that was uploaded with the kendo upload control ******************************************
         public async Task<ActionResult> SaveUploadedInstalledImage(IEnumerable<IFormFile> filesInstalled)
         {
             // The Name attribute of the Kendo Upload component is "files" and it must match the parameter name of this action.
@@ -609,32 +537,32 @@ namespace SignDesignCorpusApp.Controllers
             return Content("");
         }
 
-        // Removed the sign image that was uploaded with the kendo upload control
+        // Removes the sign image that was uploaded with the kendo upload control **********************************************************
         public ActionResult RemoveUploadedInstalledImage(string[] fileNames)
         {
-            // The parameter of the Remove action must be called "fileNames".
+            //// The parameter of the Remove action must be called "fileNames".
 
-            if (fileNames != null)
-            {
-                foreach (var fullName in fileNames)
-                {
-                    var fileName = Path.GetFileName(fullName);
-                    var physicalPath = Path.Combine(_webHostEnvironment.WebRootPath, "images", "installed_signs", fileName);
+            //if (fileNames != null)
+            //{
+            //    foreach (var fullName in fileNames)
+            //    {
+            //        var fileName = Path.GetFileName(fullName);
+            //        var physicalPath = Path.Combine(_webHostEnvironment.WebRootPath, "images", "installed_signs", fileName);
 
-                    // TODO: Verify user permissions.
+            //        // TODO: Verify user permissions.
 
-                    if (System.IO.File.Exists(physicalPath))
-                    {
-                        System.IO.File.Delete(physicalPath);
-                    }
-                }
-            }
+            //        if (System.IO.File.Exists(physicalPath))
+            //        {
+            //            System.IO.File.Delete(physicalPath);
+            //        }
+            //    }
+            //}
 
             // Return an empty string to signify success.
             return Content("");
         }
 
-        // Saves the attachment that was uploaded with the kendo upload control
+        // Saves the attachment that was uploaded with the kendo upload control *****************************************************************
         public async Task<ActionResult> SaveUploadedAttachment(IEnumerable<IFormFile> attachments)
         {
             // The Name attribute of the Kendo Upload component is "attachments" and it must match the parameter name of this action.
@@ -660,26 +588,26 @@ namespace SignDesignCorpusApp.Controllers
             return Content("");
         }
 
-        // Removed the attachment that was uploaded with the kendo upload control
+        // Removes the attachment that was uploaded with the kendo upload control ****************************************************************
         public ActionResult RemoveUploadedAttachment(string[] fileNames)
         {
-            // The parameter of the Remove action must be called "fileNames".
+            //// The parameter of the Remove action must be called "fileNames".
 
-            if (fileNames != null)
-            {
-                foreach (var fullName in fileNames)
-                {
-                    var fileName = Path.GetFileName(fullName);
-                    var physicalPath = Path.Combine(_webHostEnvironment.WebRootPath, "attachments", fileName);
+            //if (fileNames != null)
+            //{
+            //    foreach (var fullName in fileNames)
+            //    {
+            //        var fileName = Path.GetFileName(fullName);
+            //        var physicalPath = Path.Combine(_webHostEnvironment.WebRootPath, "attachments", fileName);
 
-                    // TODO: Verify user permissions.
+            //        // TODO: Verify user permissions.
 
-                    if (System.IO.File.Exists(physicalPath))
-                    {
-                        System.IO.File.Delete(physicalPath);
-                    }
-                }
-            }
+            //        if (System.IO.File.Exists(physicalPath))
+            //        {
+            //            System.IO.File.Delete(physicalPath);
+            //        }
+            //    }
+            //}
 
             // Return an empty string to signify success.
             return Content("");

@@ -127,8 +127,12 @@ namespace SignDesign_App.Controllers
                     ModelState.AddModelError("", error.Description);
                 }
             }
+            else
+            {
+                ViewData["maintenanceSections"] = GetMaintenanceSections();
+            }
 
-            return View(model);
+                return View(model);
         }
 
         // ***************************************************************************************************

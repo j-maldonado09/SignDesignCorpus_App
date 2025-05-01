@@ -30,18 +30,31 @@ namespace SignDesign_App.Services
                     page.Margin(2, Unit.Centimetre);
 
                     page.Header()
-                        .Row(row =>
+                        .Column(column =>
                         {
-                            row.ConstantItem(75)
-                                .Image(Path.Combine(physicalPath, "images", "logo.png"));
-                            row.RelativeItem()
-                                .AlignRight()
-                                .Text("Work Order #: ")
-                                .FontSize(11);
-                            row.ConstantItem(85)
-                                .Text(" " + workOrderNamesHelperModel.MaterialRequestedByNumber + "-" + workOrder.Id + " ")
-                                .FontSize(11)
-                                .BackgroundColor(fieldColor);
+                            column.Item()
+                                .Row(row =>
+                                {
+                                    row.ConstantItem(75)
+                                       .Image(Path.Combine(physicalPath, "images", "logo form 1593.png"));
+                                    row.RelativeItem()
+                                        .AlignRight()
+                                        .Text("Work Order #: ")
+                                        .FontSize(11);
+                                    row.ConstantItem(85)
+                                        .Text(" " + workOrderNamesHelperModel.MaterialRequestedByNumber + "-" + workOrder.Id + " ")
+                                        .FontSize(11)
+                                        .BackgroundColor(fieldColor);
+                                });
+                            column.Item()
+                                .PaddingLeft(4)
+                                .Text(text =>
+                                {
+                                    text.Span("Page ").FontSize(8);
+                                    text.CurrentPageNumber().FontSize(8);
+                                    text.Span(" of ").FontSize(8);
+                                    text.TotalPages().FontSize(8);
+                                });
                         });
 
 

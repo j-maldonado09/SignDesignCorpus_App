@@ -52,7 +52,8 @@
 						 </transport>
 					 </datasource>
 				 </kendo-dropdownlist>*@
-				 <kendo-dropdownlist id="requestedFrom" name="requestedFrom" datatextfield="Name" datavaluefield="Id" bind-to=@reqFrom index=-1 filter="FilterType.StartsWith" is-in-client-template=true>
+				 <kendo-dropdownlist id="requestedFrom" name="requestedFrom" datatextfield="Name" datavaluefield="Id" bind-to=@reqFrom index=-1 filter="FilterType.StartsWith" is-in-client-template=true
+									required validationMessage="This field is required">
 				 </kendo-dropdownlist>
 			</div>
 		</div>
@@ -60,7 +61,8 @@
 			<div class="form-group col-12 col-sm-12 col-md-6 col-lg-6 col-xl-6">
 				<h6 class="pt-3 text-center">Material Requested By *</h6>
 
-				 <kendo-dropdownlist id="requestedBy" name="requestedBy" datatextfield="Name" datavaluefield="Id" bind-to=@reqBy index=-1 filter="FilterType.StartsWith" is-in-client-template=true>
+				 <kendo-dropdownlist id="requestedBy" name="requestedBy" datatextfield="Name" datavaluefield="Id" bind-to=@reqBy index=-1 filter="FilterType.StartsWith" is-in-client-template=true
+										required validationMessage="This field is required">
 				 </kendo-dropdownlist>
 			</div>
 			<div class="form-group col-12 col-sm-12 col-md-6 col-lg-3 col-xl-3">
@@ -74,7 +76,8 @@
 						 </transport>
 					 </datasource>
 				 </kendo-dropdownlist>*@
-				 <kendo-dropdownlist id="year" name="year" datatextfield="FiscalYear" datavaluefield="FiscalYear" bind-to=@year index=-1 filter="FilterType.StartsWith" is-in-client-template=true>
+				 <kendo-dropdownlist id="year" name="year" datatextfield="FiscalYear" datavaluefield="FiscalYear" bind-to=@year index=-1 filter="FilterType.StartsWith" is-in-client-template=true
+									required validationMessage="This field is required">
 				 </kendo-dropdownlist>
 			</div>
 		</div>
@@ -88,7 +91,8 @@
 						 </transport>
 					 </datasource>
 				 </kendo-dropdownlist>*@
-				 <kendo-dropdownlist id="department" name="department" datatextfield="Name" datavaluefield="Id" bind-to=@department index=-1 filter="FilterType.StartsWith" is-in-client-template=true>
+				 <kendo-dropdownlist id="department" name="department" datatextfield="Name" datavaluefield="Id" bind-to=@department index=-1 filter="FilterType.StartsWith" is-in-client-template=true
+									required validationMessage="This field is required">
 				 </kendo-dropdownlist>
 			</div>
 			<div class="form-group col-12 col-sm-12 col-md-6 col-lg-3 col-xl-3">
@@ -100,8 +104,9 @@
 						 </transport>
 					 </datasource>
 				 </kendo-dropdownlist>*@
-				 <kendo-dropdownlist id="account" name="account" datatextfield="Name" datavaluefield="Id" bind-to=@account index=-1 filter="FilterType.StartsWith" is-in-client-template=true> 
-				 </kendo-dropdownlist>
+				 <kendo-dropdownlist id="account" name="account" datatextfield="Name" datavaluefield="Id" bind-to=@account index=-1 filter="FilterType.StartsWith" is-in-client-template=true
+									required validationMessage="This field is required">
+				</kendo-dropdownlist>
 			</div>
 			<div class="form-group col-12 col-sm-12 col-md-6 col-lg-3 col-xl-3">
 				<h6 class="pt-3 text-center">Fund *</h6>
@@ -112,7 +117,8 @@
 						 </transport>
 					 </datasource>
 				 </kendo-dropdownlist>*@
-				 <kendo-dropdownlist id="fund" name="fund" datatextfield="Name" datavaluefield="Id" bind-to=@fund index=-1 filter="FilterType.StartsWith" is-in-client-template=true>
+				 <kendo-dropdownlist id="fund" name="fund" datatextfield="Name" datavaluefield="Id" bind-to=@fund index=-1 filter="FilterType.StartsWith" is-in-client-template=true
+									required validationMessage="This field is required">
 				 </kendo-dropdownlist>
 			</div>
 			<div class="form-group col-12 col-sm-12 col-md-6 col-lg-3 col-xl-3">
@@ -138,7 +144,8 @@
 						 </transport>
 					 </datasource>
 				 </kendo-dropdownlist>*@
-				 <kendo-dropdownlist id="pcBus" name="pcBus" datatextfield="Name" datavaluefield="Id" bind-to=@pCBus index=-1 filter="FilterType.StartsWith" is-in-client-template=true>
+				 <kendo-dropdownlist id="pcBus" name="pcBus" datatextfield="Name" datavaluefield="Id" bind-to=@pCBus index=-1 filter="FilterType.StartsWith" is-in-client-template=true
+									required validationMessage="This field is required">
 				 </kendo-dropdownlist>
 			</div>
 			<div class="form-group col-12 col-sm-12 col-md-6 col-lg-3 col-xl-3">
@@ -150,8 +157,9 @@
 						 </transport>
 					 </datasource>
 				 </kendo-dropdownlist>*@
-				 <kendo-dropdownlist id="project" name="project" datatextfield="Name" datavaluefield="Id" bind-to=@project index=-1 filter="FilterType.StartsWith" is-in-client-template=true> 
-				 </kendo-dropdownlist>
+				 <kendo-dropdownlist id="project" name="project" datatextfield="Name" datavaluefield="Id" bind-to=@project index=-1 filter="FilterType.StartsWith" is-in-client-template=true
+									required validationMessage="This field is required">
+				</kendo-dropdownlist>
 			</div>
 			<div class="form-group col-12 col-sm-12 col-md-6 col-lg-3 col-xl-3">
 				<h6 class="pt-3 text-center">Activity *</h6>
@@ -162,7 +170,8 @@
 						 </transport>
 					 </datasource>
 				 </kendo-dropdownlist>*@
-				 <kendo-dropdownlist id="activity" name="activity" datatextfield="Name" datavaluefield="Id" bind-to=@activity index=-1 filter="FilterType.StartsWith" is-in-client-template=true>
+				 <kendo-dropdownlist id="activity" name="activity" datatextfield="Name" datavaluefield="Id" bind-to=@activity index=-1 filter="FilterType.StartsWith" is-in-client-template=true
+									required validationMessage="This field is required">
 				 </kendo-dropdownlist>
 			</div>
 			<div class="form-group col-12 col-sm-12 col-md-6 col-lg-3 col-xl-3">
@@ -174,7 +183,8 @@
 						 </transport>
 					 </datasource>
 				 </kendo-dropdownlist>*@
-				 <kendo-dropdownlist id="resType" name="resType" datatextfield="Name" datavaluefield="Id" bind-to=@resType index=-1 filter="FilterType.StartsWith" is-in-client-template=true>
+				 <kendo-dropdownlist id="resType" name="resType" datatextfield="Name" datavaluefield="Id" bind-to=@resType index=-1 filter="FilterType.StartsWith" is-in-client-template=true
+									required validationMessage="This field is required">
 				 </kendo-dropdownlist>
 			</div>
 		</div>
@@ -353,14 +363,16 @@
 				<h6 class="align-text-bottom">Maintenance Section Requestor *&nbsp;</h6>
 			</div>
 			<div class="form-group col-12 col-sm-8 col-md-8 col-lg-5 col-xl-5">
-				 <kendo-dropdownlist id="requestedByMaintenance" name="requestedByMaintenance" datatextfield="ContactFullName" datavaluefield="Id" bind-to=@maintSectionRequestor filter="FilterType.StartsWith" is-in-client-template=true>
+				 <kendo-dropdownlist id="requestedByMaintenance" name="requestedByMaintenance" datatextfield="ContactFullName" datavaluefield="Id" bind-to=@maintSectionRequestor filter="FilterType.StartsWith" 
+									is-in-client-template=true required validationMessage="This field is required">
 				 </kendo-dropdownlist>
 			</div>
 			<div class="form-group col-12 col-sm-4 col-md-4 col-lg-1 col-xl-1">
 				<h6>Date *&nbsp;</h6>
 			</div>
 			<div class="form-group col-12 col-sm-8 col-md-8 col-lg-4 col-xl-4">
-				<kendo-datepicker id="requestedByMaintenanceDate" name='requestedByMaintenanceDate' format="MMM-dd-yyyy" is-in-client-template=true>
+				<kendo-datepicker id="requestedByMaintenanceDate" name='requestedByMaintenanceDate' format="MMM-dd-yyyy" is-in-client-template=true 
+								required validationMessage="This field is required">
 				</kendo-datepicker>
 			</div>
 		</div>
@@ -437,6 +449,12 @@
 				</kendo-datepicker>
 			</div>
 		</div>
+		@* <div class="row">
+			<kendo-button id="buttonCreate" name="buttonCreate" theme-color="ThemeColor.Tertiary" on-click="SaveOrUpdate" is-in-client-template=true>
+				Create
+			</kendo-button>
+		</div> *@
+
 
 		@*<div class="row pt-3">
 			<div class="form-group col-6 col-sm-6 col-md-6 col-lg-6 col-xl-6">

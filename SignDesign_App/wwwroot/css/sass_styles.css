@@ -1,3 +1,31 @@
+.k-tooltip-validation {
+    background-color: #dc3545 !important;
+    color: white !important;
+    padding: 5px;
+    border-radius: 4px;
+    position: absolute;
+    z-index: 1000;
+    transform: translateY(6px); /* Moves tooltip down without affecting position */
+}
+
+    .k-tooltip-validation::after {
+        content: "";
+        position: absolute;
+        left: 50%;
+        margin-left: -10px;
+        border-width: 10px;
+        border-style: solid;
+        border-color: transparent transparent #dc3545 transparent; /* Triangle shape */
+        top: -16px; /* Adjust arrow positioning */
+    }
+
+.k-icon.k-i-warning {
+    color: white !important;
+    margin-right: 5px;
+    font-size: 16px; /* Make icon slightly larger */
+    vertical-align: bottom; /* Center icon within the tooltip */
+}
+
 .k-theme-test-class,
 .k-common-test-class {
     opacity: 0;

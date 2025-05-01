@@ -89,10 +89,12 @@
     const cloneCountLimit = 10; // limit of sign containers accepted by the application
     var workOrderId = 0;
     var isNew;
-    var closePopup = false;
+    var closePopup = true;
 
     // Sets that the popup will be closed. Used by grid's on-close event ***********************************************************************************
     function onPopupClose(e){
+        //alert("on popup close: " + closePopup);
+
         closePopup = true;
         RefreshGrid();
     }
@@ -155,11 +157,12 @@
         var editWindow = this.editable.element.data("kendoWindow");
         editWindow.setOptions({ title: "", height: "90%", width: "90%", resizable: false });
         editWindow.center();
-        editWindow.bind("close", onEditWindowClose);
+        //editWindow.bind("close", onEditWindowClose);
         cloneCount = 0;
         cloneCountMax = cloneCountLimit;
 
-        $(".k-grid-update").off().on("click", SaveOrUpdate);
+        //$(".k-grid-update").off().on("click", SaveOrUpdate);
+        $(".k-grid-update").hide();
         $(".k-grid-cancel").hide();
         //$(".k-button.k-button-md.k-rounded-md.k-button-flat.k-button-flat-base.k-icon-button.k-window-action").removeClass("k-button-flat k-button-flat-base").addClass("k-button-solid k-button-solid-error");
         //$(".k-grid-cancel").on("click", function (e) {
@@ -172,13 +175,14 @@
             workOrderId = e.model.get('Id');
 
             //update text for Update button
-            if ("@currentUserRole" == "SUPERVISOR" || "@currentUserRole" == "USER") //change to Submit for users and supervisors
-            {
-                $('span:contains(Update)').text('Submit');
-            }
-            else if("@currentUserRole" == "ADMIN"){ //change to Approve for admins
-				$('span:contains(Update)').text('Approve');
-            }
+    //         if ("@currentUserRole" == "SUPERVISOR" || "@currentUserRole" == "USER") //change to Submit for users and supervisors
+    //         {
+    //             $('span:contains(Update)').text('Submit');
+    //         }
+    //         else if("@currentUserRole" == "ADMIN"){ //change to Approve for admins
+				// $('span:contains(Update)').text('Approve');
+    //         }
+
             $.ajax({
                 type: 'GET',
                 url: '/WorkOrder/ReadWorkOrders',
@@ -229,16 +233,22 @@
     function initializeControls() {
         if("@currentUserRole" == "ADMIN") {
             $('<button type="button" class="k-button k-button-md k-button-rectangle k-rounded-md k-button-solid k-button-solid-dark" onclick="CreatePDF()"><span class="k-icon k-i-file-pdf k-button-icon"></span><span class="k-button-text">Generate PDF</span></button>').insertAfter(".k-grid-update");
+            $('<button type="button" class="k-button k-button-md k-button-rectangle k-rounded-md k-button-solid k-button-solid-primary" onclick="SaveOrUpdate()"><span class="k-icon k-i-check k-button-icon"></span><span class="k-button-text">Approve</span></button>').insertAfter(".k-grid-update");
+
             $('#approvedByAreaEngineer').data("kendoDropDownList").enable(false);
             $('#approvedByAreaEngineerDate').data("kendoDatePicker").enable(false);
         }
         else if("@currentUserRole" == "SUPERVISOR") {
+            $('<button type="button" class="k-button k-button-md k-button-rectangle k-rounded-md k-button-solid k-button-solid-primary" onclick="SaveOrUpdate()"><span class="k-icon k-i-check k-button-icon"></span><span class="k-button-text">Submit</span></button>').insertAfter(".k-grid-update");
+
             $('#approvedByAreaEngineer').data("kendoDropDownList").enable(false);
             $('#approvedByAreaEngineerDate').data("kendoDatePicker").enable(false);
             $('#approvedByDistrict').data("kendoDropDownList").enable(false);
             $('#approvedByDistrictDate').data("kendoDatePicker").enable(false);
         }
         else if ("@currentUserRole" == "ENGINEER") {
+            $('<button type="button" class="k-button k-button-md k-button-rectangle k-rounded-md k-button-solid k-button-solid-primary" onclick="SaveOrUpdate()"><span class="k-icon k-i-check k-button-icon"></span><span class="k-button-text">Approve</span></button>').insertAfter(".k-grid-update");
+
             $('#requestedByMaintenance').data("kendoDropDownList").enable(false);
             $('#requestedByMaintenanceDate').data("kendoDatePicker").enable(false);
             $('#approvedByMaintenance').data("kendoDropDownList").enable(false);
@@ -249,6 +259,8 @@
         }
         else if("@currentUserRole" == "USER") {
             $('<button type="button" class="k-button k-button-md k-button-rectangle k-rounded-md k-button-solid k-button-solid-dark" onclick="notifyButton()"><span class="k-icon k-i-bell k-button-icon"></span><span class="k-button-text">Notify</span></button>').insertAfter(".k-grid-update");
+            $('<button type="button" class="k-button k-button-md k-button-rectangle k-rounded-md k-button-solid k-button-solid-primary" onclick="SaveOrUpdate()"><span class="k-icon k-i-check k-button-icon"></span><span class="k-button-text">Submit</span></button>').insertAfter(".k-grid-update");
+
             $('#approvedByMaintenance').data("kendoDropDownList").enable(false);
             $('#approvedByMaintenanceDate').data("kendoDatePicker").enable(false);
             $('#approvedByAreaEngineer').data("kendoDropDownList").enable(false);
@@ -293,13 +305,95 @@
 
     // Sets behaviour of popup fro a new or an existing work order **************************************************************************************
     function SaveOrUpdate() {
+
+		// Reinitialize the validator
+        $("#workOrderForm").kendoValidator({
+            validateOnBlur: true, // Ensure validation happens when the user leaves an empty field
+            errorTemplate: '<div class="k-tooltip k-tooltip-validation">' +
+                   '<span class="k-icon k-i-warning"></span> #=message#</div>',
+
+            rules: {
+                uploadValidation: function (input) {
+                    // Apply validation only to Kendo Upload elements with IDs that start with "files-sign-"
+                    if (input.attr("id") && input.attr("id").startsWith("files-sign-")) {
+                        /* var upload = input.closest(".k-upload").data("kendoUpload");  */// Get the Kendo Upload instance
+                        var upload = $("#" + input.attr("id")).data("kendoUpload");
+                        // Check if files are present using Kendo Upload API
+                        if (upload.getFiles().length === 0) {
+                            //alert("NO files");
+                            input.closest(".k-upload").css("border", "1px solid red"); // Add red border for invalid
+                            return false; // Validation failed
+                        } else {
+                            //alert("YES files");
+                            input.closest(".k-upload").css("border", ""); // Reset border for valid
+                            return true; // Validation passed
+                        }
+                    }
+                    return true; // Skip validation for other inputs
+                },
+                requiredDateWhenApproverSelected: function (input) {
+                    if (input.is("#approvedByMaintenanceDate") && $("#approvedByMaintenance").data("kendoDropDownList").value()) {
+                        return input.val().trim() !== "";
+                    }
+                    if (input.is("#approvedByAreaEngineerDate") && $("#approvedByAreaEngineer").data("kendoDropDownList").value()) {
+                        return input.val().trim() !== "";
+                    }
+                    if (input.is("#approvedByDistrictDate") && $("#approvedByDistrict").data("kendoDropDownList").value()) {
+                        return input.val().trim() !== "";
+                    }
+                    return true; // Skip validation for other inputs
+                },
+                requiredApproverWhenDateSelected: function (input) {
+                    if (input.is("#approvedByMaintenance") && $("#approvedByMaintenanceDate").data("kendoDatePicker").value()) {
+                        return input.val().trim() !== "";
+                    }
+                    if (input.is("#approvedByAreaEngineer") && $("#approvedByAreaEngineerDate").data("kendoDatePicker").value()) {
+                        return input.val().trim() !== "";
+                    }
+                    if (input.is("#approvedByDistrict") && $("#approvedByDistrictDate").data("kendoDatePicker").value()) {
+                        return input.val().trim() !== "";
+                    }
+                    return true; // Skip validation for other inputs
+                }
+            },
+            messages:{
+				uploadValidation: "Please upload a file",
+				requiredDateWhenApproverSelected: "A date is required when an approver is selected",
+                requiredApproverWhenDateSelected: "An approver is required when a date is selected"
+            }
+        });
+            
+        //$("#workOrderForm").kendoValidator();
+        
+        // Trigger validation before form submission
+        var validator = $("#workOrderForm").data("kendoValidator");
+        if (!validator.validate()) {
+            $(".k-invalid-msg").each(function () {
+                $(this).addClass("k-tooltip-validation"); // Force tooltip styling for validation
+            });
+
+            fnShowMessage("Please fill in all required fields", "Error");
+
+            // Destroy/Reset the validator to avoid multiple rules
+            if ($("#workOrderForm").data("kendoValidator")) {
+                $("#workOrderForm").data("kendoValidator").destroy();
+            }
+
+            return;
+        }
+
+        // Destroy/Reset the validator to avoid multiple rules
+        if ($("#workOrderForm").data("kendoValidator")) {
+            $("#workOrderForm").data("kendoValidator").destroy();
+        }
+
         //closePopup = false;
         if (isNew){
-            closePopup =  true;
+            //closePopup = true;
             SaveWorkOrder();
         }
         else{
-            closePopup = false;
+            //closePopup = false;
             UpdateWorkOrder();
         }
     }
@@ -406,8 +500,8 @@
             $("#nigp-" + i).data("kendoTextArea").value(controlVal);
 
             // RDC
-            controlVal = jsonResult[0].Items[i - 1].RDC;
-            $("#rdc-" + i).data("kendoCheckBox").check(controlVal);
+            // controlVal = jsonResult[0].Items[i - 1].RDC;
+            // $("#rdc-" + i).data("kendoCheckBox").check(controlVal);
 
             controlVal = jsonResult[0].Items[i - 1].Quantity;
             $("#quantity-" + i).data("kendoNumericTextBox").value(controlVal);
@@ -578,23 +672,23 @@
         
         // Create the first (1st) block of the left side of the form
         $('#left-' + cloneCount).append('<div id="first-row-' + cloneCount + '" class="row pt-3"></div>');
+        //$('#first-row-' + cloneCount).append('<div id="first-row-left-' + cloneCount + '" class="form-group col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4"></div>');
+
+        //createCheckbox('first-row-left-' + cloneCount, 'rdc-' + cloneCount);
+        
+        //$('#first-row-left-' + cloneCount).append('<h6 style="display:inline">   RDC</h6>');
+  
         $('#first-row-' + cloneCount).append('<div id="first-row-left-' + cloneCount + '" class="form-group col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4"></div>');
 
-        createCheckbox('first-row-left-' + cloneCount, 'rdc-' + cloneCount);
-        
-        $('#first-row-left-' + cloneCount).append('<h6 style="display:inline">   RDC</h6>');
+        createCheckbox('first-row-left-' + cloneCount, 'rush-order-' + cloneCount);
+
+        $('#first-row-left-' + cloneCount).append('<h6 style="display:inline" class="pt-3">   Rush order</h6>');
   
         $('#first-row-' + cloneCount).append('<div id="first-row-center-' + cloneCount + '" class="form-group col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4"></div>');
 
-        createCheckbox('first-row-center-' + cloneCount, 'rush-order-' + cloneCount);
+        createCheckbox('first-row-center-' + cloneCount, 'new-installation-' + cloneCount);
 
-        $('#first-row-center-' + cloneCount).append('<h6 style="display:inline" class="pt-3">   Rush order</h6>');
-  
-        $('#first-row-' + cloneCount).append('<div id="first-row-right-' + cloneCount + '" class="form-group col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4"></div>');
-
-        createCheckbox('first-row-right-' + cloneCount, 'new-installation-' + cloneCount);
-
-        $('#first-row-right-' + cloneCount).append('<h6 style="display:inline" class="pt-3">   New installation</h6>');
+        $('#first-row-center-' + cloneCount).append('<h6 style="display:inline" class="pt-3">   New installation</h6>');
 
 
         // Create the second (2nd) block of the left side of the form 
@@ -744,7 +838,7 @@
 
     // Function to create kendo text area dynamically *************************************************************************************************
     function createTextArea(idToAppend, id, rowsNumber, isDesignation) {
-        $('#' + idToAppend).append('<textarea id="' + id + '" style="height: auto;"></textarea>');
+        $('#' + idToAppend).append('<textarea id="' + id + '" name="' + id + '" required validationMessage="This field is required" style="height: auto;"></textarea>');
         $('#' + id).kendoTextArea({
             rows: rowsNumber,
             change: function()
@@ -792,8 +886,8 @@
             image = [{name:imageName}];
 
         //$('#left-' + cloneCount).append('<input id="files-' + cloneCount + '" name="files" type="file"/>');
-        $('#third-row-left-' + cloneCount).append('<input id="files-' + cloneCount + '" name="files" type="file"/>');
-        $('#files-' + cloneCount).kendoUpload({
+        $('#third-row-left-' + cloneCount).append('<input id="files-sign-' + cloneCount + '" name="files-sign-' + cloneCount + '" type="file"/>');
+        $('#files-sign-' + cloneCount).kendoUpload({
             multiple: false,
             async: {
                 saveUrl: '/WorkOrder/SaveUploadedImage',
@@ -801,16 +895,32 @@
                 autoUpload: true
             },
             files: image,
-            select: function(){
-                isReplacingFile = true; //reset flag on file selection
+            select: function (e) {
+                var allowedExtensions = [".png", ".jpg", ".jpeg"]; // Allowed file types
+                var isValid = true;
+
+                $.each(e.files, function (index, file) {
+                    var extension = file.extension.toLowerCase();
+                    if (allowedExtensions.indexOf(extension) === -1) {
+                        isValid = false;
+                    }
+                });
+
+                if (!isValid) {
+                    e.preventDefault(); // Cancel file selection
+                    fnShowMessage("Only PNG, JPG, and JPEG are allowed", "Invalid file type");
+                }
             },
+            // select: function(){
+            //     isReplacingFile = true; //reset flag on file selection
+            // },
             success: function(e){
                 isReplacingFile = false; //reset flag after successful upload
                 onUploadSuccess(e);
-            },
-            remove: function (e) {
-                onFileRemoval(e, 'files', cloneCount, isReplacingFile);
             }
+            // remove: function (e) {
+            //     onFileRemoval(e, 'files-sign', cloneCount, isReplacingFile);
+            // }
         });
 
         // if length of array is greater than zero, it means that an image already exists (an existing record is being edited)
@@ -1204,13 +1314,13 @@
 
         for (var i = 1; i <= cloneCount; i++) {
             if ($('#sign-form-' + i).length > 0) {
-                files = $("#files-" + i).data("kendoUpload").getFiles();
+                files = $("#files-sign-" + i).data("kendoUpload").getFiles();
                 filesInstalled = $("#files-installed-" + i).data("kendoUpload").getFiles();
                 attachments = $("#attachments-" + i).data("kendoUpload").getFiles();
 
                 // if length = 0, then the sign image (upload control) was not edited, the sign image is the same as when the record was loaded
                 if (files.length == 0)
-                    imageName = $("#files-" + i).data("kendoUpload").files[0].name;
+                    imageName = $("#files-sign-" + i).data("kendoUpload").files[0].name;
                 else
                     imageName = files[0].name;
 
@@ -1228,7 +1338,8 @@
                 
                 workOrder.Items.push({
                     NIGP: $("#nigp-" + i).val(),
-                    RDC: $("#rdc-" + i).data("kendoCheckBox").check(),
+                    //RDC: $("#rdc-" + i).data("kendoCheckBox").check(),
+                    RDC: false,
                     Quantity: $("#quantity-" + i).val(),
                     //Instructions: $("#instructions-" + i).val(),
                     SignImage: imageName,

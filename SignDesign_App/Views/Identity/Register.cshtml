@@ -89,6 +89,11 @@
 </div>
 
 <script>
+	$(document).ready(function () {
+		// Disable the Maintenance Section dropdown if the Organization Type is District
+		selectDistrictOption();
+	});
+
     function selectDistrictOption(){
         if ($('#OrganizationType').val() == "District")
             $('#MaintenanceSectionId').val(-1).prop('disabled', true);
