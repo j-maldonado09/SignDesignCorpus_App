@@ -120,12 +120,18 @@ namespace SignDesignCorpusApp.Controllers
         }
 
         // Read all work orders (main grid) *****************************************************************************************
-        public IActionResult Read([DataSourceRequest] DataSourceRequest request)
+        public async Task<IActionResult> Read([DataSourceRequest] DataSourceRequest request)
         {
-            string result = _workOrderRepository.Read();
+            string result = _workOrderRepository.Read();            
             IQueryable<WorkOrderViewModel> workOrders = JsonSerializer.Deserialize<List<WorkOrderViewModel>>(result).AsQueryable();
             _workOrderRepository.DisposeDBObjects();
             DataSourceResult dsResult = workOrders.ToDataSourceResult(request);
+
+            //filter work orders by logged in user's maintennace section id
+            var currentUser = await _userManager.GetUserAsync(HttpContext.User);
+            string currentUserRole = _userManager.GetRolesAsync(currentUser).Result[0];
+            if (currentUserRole == "USER" || currentUserRole == "SUPERVISOR")
+                dsResult.Data = workOrders.Where(x => x.MaterialRequestedById == currentUser.MaintenanceSectionId).ToList();
             return Json(dsResult);
         }
 
