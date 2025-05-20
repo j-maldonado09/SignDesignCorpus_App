@@ -911,16 +911,16 @@
                     fnShowMessage("Only PNG, JPG, and JPEG are allowed", "Invalid file type");
                 }
             },
-            // select: function(){
-            //     isReplacingFile = true; //reset flag on file selection
-            // },
+            select: function(){
+                isReplacingFile = true; //reset flag on file selection
+            },
             success: function(e){
                 isReplacingFile = false; //reset flag after successful upload
                 onUploadSuccess(e);
+            },
+            remove: function (e) {
+                onFileRemoval(e, isReplacingFile);
             }
-            // remove: function (e) {
-            //     onFileRemoval(e, 'files-sign', cloneCount, isReplacingFile);
-            // }
         });
 
         // if length of array is greater than zero, it means that an image already exists (an existing record is being edited)
@@ -959,7 +959,7 @@
                 onInstalledImageUploadSuccess(e);
             },
             remove: function (e) {
-                onFileRemoval(e, 'files-installed', cloneCount, isReplacingFile);
+                onFileRemoval(e, isReplacingFile);
             }
         });
 
@@ -999,7 +999,7 @@
                 onUploadAttachmentSuccess(e);
             },
             remove: function (e) {
-                onFileRemoval(e, 'attachments', cloneCount, isReplacingFile);
+                onFileRemoval(e, isReplacingFile);
             }
         });
 
@@ -1010,7 +1010,7 @@
     }
 
      // On image, attachment, image installed remove event *********************************************************************************************************************
-    function onFileRemoval(e, uploadType, cloneCount, isReplacingFile) {
+    function onFileRemoval(e, isReplacingFile) {
         if(isReplacingFile){
             isReplacingFile = false; //reset flag after replacement
             return;                    
@@ -1024,7 +1024,7 @@
                 data: { fileNames: fileNames },
                 traditional: true,
                 success: function() { //on successful deletion, update html
-                    var selectorPrefix = '#' + uploadType + '-' + cloneCount;
+                    var selectorPrefix = '#' + e.sender.element.attr('id');
                     var $uploadElement = $(selectorPrefix).closest('.k-upload');
                     $uploadElement.find('.k-upload-files').remove();
                     $uploadElement.addClass("k-upload-empty");
