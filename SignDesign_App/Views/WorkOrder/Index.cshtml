@@ -55,8 +55,8 @@
         <column field="MaterialRequestedFromName" title="Requested From" width="200"/>
         <column field="MaterialRequestedById" title="Requested By" hidden=true/>
         <column field="MaterialRequestedByName" title="Requested By" />
-        <column name="statusColumn" field="Status" title="Status" width="180"/>
-        <column field="StatusDate" title="Date" format="{0:yyyy/MM/dd}" width="180"/>
+        <column field="Status" title="Status" width="180"/>
+        <column field="StatusDate" title="Date" format="{0:MM/dd/yyyy}" width="180"/>
         <column width="110">
             <commands>
                 <column-command text=" " name="edit"></column-command>
@@ -896,6 +896,8 @@
             },
             files: image,
             select: function (e) {
+                isReplacingFile = true; //reset flag on file selection
+
                 var allowedExtensions = [".png", ".jpg", ".jpeg"]; // Allowed file types
                 var isValid = true;
 
@@ -910,9 +912,6 @@
                     e.preventDefault(); // Cancel file selection
                     fnShowMessage("Only PNG, JPG, and JPEG are allowed", "Invalid file type");
                 }
-            },
-            select: function(){
-                isReplacingFile = true; //reset flag on file selection
             },
             success: function(e){
                 isReplacingFile = false; //reset flag after successful upload
@@ -1305,6 +1304,8 @@
             ApprovedByDistrictDate: $("#approvedByDistrictDate").val().toString().length != 0 ? new Date($("#approvedByDistrictDate").val()) : null,
             SignReceivedDate: $("#signReceivedOnDate").val().toString().length != 0 ? new Date($("#signReceivedOnDate").val()) : null,
             SignInstalledDate: $("#signInstalledOnDate").val().toString().length != 0 ? new Date($("#signInstalledOnDate").val()) : null,
+            IsHold: false,
+            Status: 'TEST',
             Items: []
         }
 
