@@ -64,6 +64,7 @@
             var dataItem = grid.dataItem(this);
 
             //alert(dataItem.Status);
+            $("td:contains('DRAFT')").addClass("status-css-draft");
             $("td:contains('CREATED')").addClass("status-css-created");
             $("td:contains('REQUESTED')").addClass("status-css-requested");
             $("td:contains('APPROVED')").addClass("status-css-approved");

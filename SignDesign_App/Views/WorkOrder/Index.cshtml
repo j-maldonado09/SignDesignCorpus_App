@@ -111,6 +111,7 @@
         grid.table.find("tr").each(function () {
             var dataItem = grid.dataItem(this);
 
+            $("td:contains('DRAFT')").addClass("status-css-draft");
             $("td:contains('CREATED')").addClass("status-css-created");
             $("td:contains('REQUESTED')").addClass("status-css-requested");
             $("td:contains('AREA ENGINEER')").addClass("status-css-engineer");
@@ -233,17 +234,23 @@
     // ****************************************************************************************************************************************************
     function initializeControls() {
         if("@currentUserRole" == "ADMIN") {
-            $('<button type="button" class="k-button k-button-md k-button-rectangle k-rounded-md k-button-solid k-button-solid-dark" onclick="CreatePDF()"><span class="k-icon k-i-file-pdf k-button-icon"></span><span class="k-button-text">Generate PDF</span></button>').insertAfter(".k-grid-update");
-            $('<button type="button" class="k-button k-button-md k-button-rectangle k-rounded-md k-button-solid k-button-solid-primary" onclick="SaveOrUpdate()"><span class="k-icon k-i-check k-button-icon"></span><span class="k-button-text">Approve</span></button>').insertAfter(".k-grid-update");
-
+            if(isNew || currentWorkOrderStatus == "DRAFT"){
+                $('<button type="button" class="k-button k-button-md k-button-rectangle k-rounded-md k-button-solid k-button-solid-primary" onclick="SaveOrUpdate(\'Submit\')"<span class="k-button-text">Save & Submit</span></button>').insertAfter(".k-grid-update");
+            }
+            else{
+                $('<button type="button" class="k-button k-button-md k-button-rectangle k-rounded-md k-button-solid k-button-solid-dark" onclick="CreatePDF()"><span class="k-icon k-i-file-pdf k-button-icon"></span><span class="k-button-text">Generate PDF</span></button>').insertAfter(".k-grid-update");
+                $('<button type="button" class="k-button k-button-md k-button-rectangle k-rounded-md k-button-solid k-button-solid-success" onclick="SaveOrUpdate(\'Submit\')"><span class="k-icon k-i-check k-button-icon"></span><span class="k-button-text">Approve</span></button>').insertAfter(".k-grid-update");
+            }
+            $('<button type="button" class="k-button k-button-md k-button-rectangle k-rounded-md k-button-solid k-button-solid-secondary" onclick="SaveOrUpdate(\'Save\')"><span class="k-button-text">Save</span></button>').insertAfter(".k-grid-update");
+            
             $('#approvedByAreaEngineer').data("kendoDropDownList").enable(false);
             $('#approvedByAreaEngineerDate').data("kendoDatePicker").enable(false);
         }
         else if("@currentUserRole" == "SUPERVISOR") {
-            if("@workOrderCurrentStatus" != "APPROVED" && "@workOrderCurrentStatus" != "RECEIVED" && "@workOrderCurrentStatus" != "INSTALLED"){
+            if(isNew || (currentWorkOrderStatus != "APPROVED" && currentWorkOrderStatus != "RECEIVED" && currentWorkOrderStatus != "INSTALLED")){
                 $('<button type="button" class="k-button k-button-md k-button-rectangle k-rounded-md k-button-solid k-button-solid-primary" onclick="SaveOrUpdate(\'Submit\')"<span class="k-button-text">Save & Submit</span></button>').insertAfter(".k-grid-update");
             }            
-            $('<button type="button" class="k-button k-button-md k-button-rectangle k-rounded-md k-button-solid k-button-solid-primary" onclick="SaveOrUpdate(\'Save\')"><span class="k-button-text">Save</span></button>').insertAfter(".k-grid-update");
+            $('<button type="button" class="k-button k-button-md k-button-rectangle k-rounded-md k-button-solid k-button-solid-secondary" onclick="SaveOrUpdate(\'Save\')"><span class="k-button-text">Save</span></button>').insertAfter(".k-grid-update");
 
             $('#approvedByAreaEngineer').data("kendoDropDownList").enable(false);
             $('#approvedByAreaEngineerDate').data("kendoDatePicker").enable(false);
@@ -262,10 +269,10 @@
             
         }
         else if("@currentUserRole" == "USER") {
-            if("@workOrderCurrentStatus" != "APPROVED" && "@workOrderCurrentStatus" != "RECEIVED" && "@workOrderCurrentStatus" != "INSTALLED"){
+            if(isNew || (currentWorkOrderStatus != "APPROVED" && currentWorkOrderStatus != "RECEIVED" && currentWorkOrderStatus != "INSTALLED")){
                 $('<button type="button" class="k-button k-button-md k-button-rectangle k-rounded-md k-button-solid k-button-solid-primary" onclick="SaveOrUpdate(\'Submit\')"<span class="k-button-text">Save & Submit</span></button>').insertAfter(".k-grid-update");
             }
-            $('<button type="button" class="k-button k-button-md k-button-rectangle k-rounded-md k-button-solid k-button-solid-primary" onclick="SaveOrUpdate(\'Save\')"><span class="k-button-text">Save</span></button>').insertAfter(".k-grid-update");
+            $('<button type="button" class="k-button k-button-md k-button-rectangle k-rounded-md k-button-solid k-button-solid-secondary" onclick="SaveOrUpdate(\'Save\')"><span class="k-button-text">Save</span></button>').insertAfter(".k-grid-update");
 
             $('#approvedByMaintenance').data("kendoDropDownList").enable(false);
             $('#approvedByMaintenanceDate').data("kendoDatePicker").enable(false);
@@ -407,7 +414,6 @@
     // ************************************************************************************************************************************************
     function LoadWorkOrderInfo(result) {
         var jsonResult = jQuery.parseJSON(result);
-        console.log("json", jsonResult);
         var dropdownVal;
 
         // Get the current status of the work order selected
@@ -491,11 +497,7 @@
             dateParts = jsonResult[0].SignInstalledDate.split('-');
             date = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
             $("#signInstalledOnDate").data("kendoDatePicker").value(date);
-        }
-
-        //set current work order status
-        "@workOrderCurrentStatus" = jsonResult[0].Status
-    
+        }    
         LoadWorkOrderItemInfo(jsonResult);       
     }
 
@@ -1226,11 +1228,8 @@
             url: '/WorkOrder/Create',
             contentType: 'application/json; charset=utf-8',
             data: JSON.stringify(workOrder),
-            success: function (result) {               
-                if("@currentUserRole" == "SUPERVISOR")
-                    notifyButton(); //notify on work order creation by supervisor
-                else
-                    fnShowMessage("Work order was created", "Success");
+            success: function (result) {
+                fnShowMessage("Work order was created", "Success");
                 RefreshGrid();
             },
             error: function (xhr, textStatus, errorThrown) {
@@ -1243,19 +1242,16 @@
     // Function to edit/update work order ***************************************************************************************************************
     function UpdateWorkOrder(btnType) {
         var workOrder = GetWorkOrderData();
-        console.log("workORder", workOrder);
 
-        if(btnType == "Submit"){ //set status when Save & Submit button is clicked
-            var currentStatus = workOrder.Status;
-            console.log("currentStatus", currentStatus)
-            if(currentStatus == "DRAFT")
+        //set status when Save & Submit button is clicked
+        if(btnType == "Submit"){       
+            if(currentWorkOrderStatus == "DRAFT")
                 workOrder.Status = "CREATED";
-            else if(currentStatus == "CREATED")
+            else if(currentWorkOrderStatus == "CREATED")
                 workOrder.Status = "REQUESTED";
-            else if(currentStatus == "REQUESTED")
+            else if(currentWorkOrderStatus == "REQUESTED")
                 workOrder.Status = "APPROVED";
         }
-        console.log("workOrder status", workOrder.Status);
         //alert(JSON.stringify(workOrder));
         $.ajax({
             type: 'POST',
@@ -1263,10 +1259,7 @@
             contentType: 'application/json; charset=utf-8',
             data: JSON.stringify(workOrder),
             success: function (result) {
-                if("@currentUserRole" == "SUPERVISOR")
-                    notifyButton(); //notify admins on work order update
-                else
-                    fnShowMessage("Information was updated", "Success");
+                fnShowMessage("Information was updated", "Success");
                 RefreshGrid();    
             },
             error: function (xhr, textStatus, errorThrown) {
@@ -1337,7 +1330,7 @@
             SignReceivedDate: $("#signReceivedOnDate").val().toString().length != 0 ? new Date($("#signReceivedOnDate").val()) : null,
             SignInstalledDate: $("#signInstalledOnDate").val().toString().length != 0 ? new Date($("#signInstalledOnDate").val()) : null,
             IsHold: false,
-            Status: '',
+            Status: currentWorkOrderStatus,
             Items: []
         }
 
