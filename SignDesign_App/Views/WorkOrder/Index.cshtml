@@ -84,12 +84,13 @@
 
 <script>
     // variables ******************************************************************************************************************************************
-    var cloneCount = 0;         // current number of sign segments
-    var cloneCountMax = 10;     // sets the updated maximum value of sign segments (this increases when sign segments are deleted)
-    const cloneCountLimit = 10; // limit of sign containers accepted by the application
+    var cloneCount = 0;             // current number of sign segments
+    var cloneCountMax = 10;         // sets the updated maximum value of sign segments (this increases when sign segments are deleted)
+    const cloneCountLimit = 10;     // limit of sign containers accepted by the application
     var workOrderId = 0;
     var isNew;
     var closePopup = true;
+    var currentWorkOrderStatus = '';    // current work order status used when editing an existing work order
 
     // Sets that the popup will be closed. Used by grid's on-close event ***********************************************************************************
     function onPopupClose(e){
@@ -409,6 +410,10 @@
         console.log("json", jsonResult);
         var dropdownVal;
 
+        // Get the current status of the work order selected
+        currentWorkOrderStatus = jsonResult[0].Status;
+
+        // Set values to UI controls
         dropdownVal = jsonResult[0].MaterialRequestedFromId;
         $("#requestedFrom").data("kendoDropDownList").value(dropdownVal);
 
