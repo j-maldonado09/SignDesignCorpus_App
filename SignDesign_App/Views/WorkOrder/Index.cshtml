@@ -6,9 +6,9 @@
 @inject UserManager<ApplicationUser> userManager;
 
 @{
-	var currentUser = await userManager.GetUserAsync(User);
+    var currentUser = await userManager.GetUserAsync(User);
     var roles = userManager.GetRolesAsync(currentUser).Result;
-	string currentUserRole = roles[0];
+    string currentUserRole = roles[0];
 }
 
 <h1>
@@ -239,7 +239,10 @@
             $('#approvedByAreaEngineerDate').data("kendoDatePicker").enable(false);
         }
         else if("@currentUserRole" == "SUPERVISOR") {
-            $('<button type="button" class="k-button k-button-md k-button-rectangle k-rounded-md k-button-solid k-button-solid-primary" onclick="SaveOrUpdate()"><span class="k-icon k-i-check k-button-icon"></span><span class="k-button-text">Submit</span></button>').insertAfter(".k-grid-update");
+            if("@workOrderCurrentStatus" != "APPROVED" && "@workOrderCurrentStatus" != "RECEIVED" && "@workOrderCurrentStatus" != "INSTALLED"){
+                $('<button type="button" class="k-button k-button-md k-button-rectangle k-rounded-md k-button-solid k-button-solid-primary" onclick="SaveOrUpdate(\'Submit\')"<span class="k-button-text">Save & Submit</span></button>').insertAfter(".k-grid-update");
+            }            
+            $('<button type="button" class="k-button k-button-md k-button-rectangle k-rounded-md k-button-solid k-button-solid-primary" onclick="SaveOrUpdate(\'Save\')"><span class="k-button-text">Save</span></button>').insertAfter(".k-grid-update");
 
             $('#approvedByAreaEngineer').data("kendoDropDownList").enable(false);
             $('#approvedByAreaEngineerDate').data("kendoDatePicker").enable(false);
@@ -258,8 +261,10 @@
             
         }
         else if("@currentUserRole" == "USER") {
-            $('<button type="button" class="k-button k-button-md k-button-rectangle k-rounded-md k-button-solid k-button-solid-dark" onclick="notifyButton()"><span class="k-icon k-i-bell k-button-icon"></span><span class="k-button-text">Notify</span></button>').insertAfter(".k-grid-update");
-            $('<button type="button" class="k-button k-button-md k-button-rectangle k-rounded-md k-button-solid k-button-solid-primary" onclick="SaveOrUpdate()"><span class="k-icon k-i-check k-button-icon"></span><span class="k-button-text">Submit</span></button>').insertAfter(".k-grid-update");
+            if("@workOrderCurrentStatus" != "APPROVED" && "@workOrderCurrentStatus" != "RECEIVED" && "@workOrderCurrentStatus" != "INSTALLED"){
+                $('<button type="button" class="k-button k-button-md k-button-rectangle k-rounded-md k-button-solid k-button-solid-primary" onclick="SaveOrUpdate(\'Submit\')"<span class="k-button-text">Save & Submit</span></button>').insertAfter(".k-grid-update");
+            }
+            $('<button type="button" class="k-button k-button-md k-button-rectangle k-rounded-md k-button-solid k-button-solid-primary" onclick="SaveOrUpdate(\'Save\')"><span class="k-button-text">Save</span></button>').insertAfter(".k-grid-update");
 
             $('#approvedByMaintenance').data("kendoDropDownList").enable(false);
             $('#approvedByMaintenanceDate').data("kendoDatePicker").enable(false);
@@ -304,7 +309,7 @@
     }
 
     // Sets behaviour of popup fro a new or an existing work order **************************************************************************************
-    function SaveOrUpdate() {
+    function SaveOrUpdate(btnType) {
 
 		// Reinitialize the validator
         $("#workOrderForm").kendoValidator({
@@ -390,17 +395,18 @@
         //closePopup = false;
         if (isNew){
             //closePopup = true;
-            SaveWorkOrder();
+            SaveWorkOrder(btnType);
         }
         else{
             //closePopup = false;
-            UpdateWorkOrder();
+            UpdateWorkOrder(btnType);
         }
     }
 
     // ************************************************************************************************************************************************
     function LoadWorkOrderInfo(result) {
         var jsonResult = jQuery.parseJSON(result);
+        console.log("json", jsonResult);
         var dropdownVal;
 
         dropdownVal = jsonResult[0].MaterialRequestedFromId;
@@ -481,8 +487,11 @@
             date = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
             $("#signInstalledOnDate").data("kendoDatePicker").value(date);
         }
+
+        //set current work order status
+        "@workOrderCurrentStatus" = jsonResult[0].Status
     
-        LoadWorkOrderItemInfo(jsonResult);
+        LoadWorkOrderItemInfo(jsonResult);       
     }
 
     // ****************************************************************************************************************************************************
@@ -1196,8 +1205,13 @@
     }
 
     // Function to save work order ***********************************************************************************************************************
-    function SaveWorkOrder() {
+    function SaveWorkOrder(btnType) {
         var workOrder = GetWorkOrderData();
+        
+        if(btnType == "Save")
+            workOrder.Status = "DRAFT";
+        else
+            workOrder.Status = "CREATED";
         //alert(workOrder.ApprovedByMaintenanceId + ', ' + workOrder.ApprovedByMaintenanceDate);
         //alert(workOrder.ApprovedByMaintenanceId.toString().length + ', ' + workOrder.ApprovedByMaintenanceDate.toString().length);
         //alert(JSON.stringify(workOrder));
@@ -1222,8 +1236,21 @@
     }
 
     // Function to edit/update work order ***************************************************************************************************************
-    function UpdateWorkOrder() {
+    function UpdateWorkOrder(btnType) {
         var workOrder = GetWorkOrderData();
+        console.log("workORder", workOrder);
+
+        if(btnType == "Submit"){ //set status when Save & Submit button is clicked
+            var currentStatus = workOrder.Status;
+            console.log("currentStatus", currentStatus)
+            if(currentStatus == "DRAFT")
+                workOrder.Status = "CREATED";
+            else if(currentStatus == "CREATED")
+                workOrder.Status = "REQUESTED";
+            else if(currentStatus == "REQUESTED")
+                workOrder.Status = "APPROVED";
+        }
+        console.log("workOrder status", workOrder.Status);
         //alert(JSON.stringify(workOrder));
         $.ajax({
             type: 'POST',
@@ -1305,7 +1332,7 @@
             SignReceivedDate: $("#signReceivedOnDate").val().toString().length != 0 ? new Date($("#signReceivedOnDate").val()) : null,
             SignInstalledDate: $("#signInstalledOnDate").val().toString().length != 0 ? new Date($("#signInstalledOnDate").val()) : null,
             IsHold: false,
-            Status: 'TEST',
+            Status: '',
             Items: []
         }
 
