@@ -342,8 +342,8 @@ namespace SignDesignCorpusApp.Controllers
                 foreach (ApplicationUser user in applicationUsers)
                 {
                     usersList += user.Email + ";";
-                }
-                usersList = usersList.Remove(usersList.Length - 1, 1);
+                    usersList = usersList.Remove(usersList.Length - 1, 1);
+                }                
             }
             else if(status == "REQUESTED")
             {
