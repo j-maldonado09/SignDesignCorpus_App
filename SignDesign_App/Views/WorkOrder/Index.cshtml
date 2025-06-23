@@ -122,7 +122,7 @@
             // Check if edit button will be disabled
             // Column 6 is for status and column 8 is for edit and delete buttons
             if (this.cells.item(6).innerHTML == "CREATED") {
-                if ("@currentUserRole" == "ENGINEER" || "@currentUserRole" == "ADMIN")
+                if ("@currentUserRole" == "ENGINEER" || "@currentUserRole" == "ADMIN" || "@currentUserRole" == "USER")
                     this.cells.item(8).getElementsByClassName("k-grid-edit")[0].setAttribute("disabled", true);
                 if ("@currentUserRole" == "ADMIN")
                     this.cells.item(8).getElementsByClassName("k-grid-delete")[0].setAttribute("disabled", true);
@@ -259,7 +259,7 @@
             $('#approvedByDistrictDate').data("kendoDatePicker").enable(false);
         }
         else if ("@currentUserRole" == "ENGINEER") {
-            $('<button type="button" class="k-button k-button-md k-button-rectangle k-rounded-md k-button-solid k-button-solid-primary" onclick="SaveOrUpdate()"><span class="k-icon k-i-check k-button-icon"></span><span class="k-button-text">Approve</span></button>').insertAfter(".k-grid-update");
+            $('<button type="button" class="k-button k-button-md k-button-rectangle k-rounded-md k-button-solid k-button-solid-primary" onclick="SaveOrUpdate(\'Submit\')"><span class="k-icon k-i-check k-button-icon"></span><span class="k-button-text">Approve</span></button>').insertAfter(".k-grid-update");
 
             $('#requestedByMaintenance').data("kendoDropDownList").enable(false);
             $('#requestedByMaintenanceDate').data("kendoDatePicker").enable(false);
@@ -300,12 +300,12 @@
     }
 
     // Sends email when clicking on the notify button ************************************************************************************************
-    function notifyButton(message, status){
+    function notifyButton(message, workOrder){
         $.ajax({
-            type: 'GET',
+            type: 'POST',
             url: '/WorkOrder/SendMail',
             contentType: 'application/json; charset=utf-8',
-            data: { workOrderstatus: status, isWorkOrderNew: isNew },
+            data: JSON.stringify(workOrder),
             success: function (result) {
                 fnShowMessage(message + " and notification sent", "Success");
             },
@@ -1369,7 +1369,7 @@
             success: function (result) {
                 const message = "Work order was created";
                 if(btnType == "Submit")
-                    notifyButton(message, workOrder.Status);
+                    notifyButton(message, workOrder);
                 else
                     fnShowMessage(message, "Success");
                 RefreshGrid();
@@ -1384,6 +1384,13 @@
     // Function to edit/update work order ***************************************************************************************************************
     function UpdateWorkOrder(btnType) {
         var workOrder = GetWorkOrderData();
+        var signItems = workOrder.Items;
+        var requireEngineerApproval = false;
+        if(signItems && signItems.length > 0){
+			const signsNeedApproval = signItems.filter(item => item.Name == 'W12-2' || item.Name == 'W12-2A');
+			if(signsNeedApproval.length > 0 )
+                requireEngineerApproval = true;
+        }
 
         //set status when Save & Submit button is clicked
         if(btnType == "Submit"){       
@@ -1391,8 +1398,10 @@
                 workOrder.Status = "CREATED";
             else if(currentWorkOrderStatus == "CREATED")
                 workOrder.Status = "REQUESTED";
-            else if(currentWorkOrderStatus == "REQUESTED")
-                workOrder.Status = "APPROVED";
+            else if(currentWorkOrderStatus == "REQUESTED" && requireEngineerApproval)
+                workOrder.Status = "AREA ENGINEER";
+            else if(currentWorkOrderStatus == "REQUESTED" || currentWorkOrderStatus == "AREA ENGINEER")
+                workOrder.Status =  "APPROVED";
         }
         //alert(JSON.stringify(workOrder));
         $.ajax({
@@ -1403,7 +1412,7 @@
             success: function (result) {
                 const message = "Information was updated";
                 if(btnType == "Submit")
-                    notifyButton(message, workOrder.Status);
+                    notifyButton(message, workOrder);
                 else
                     fnShowMessage(message, "Success");
                 RefreshGrid();    

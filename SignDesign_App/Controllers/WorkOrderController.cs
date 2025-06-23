@@ -319,42 +319,42 @@ namespace SignDesignCorpusApp.Controllers
         }
 
         // Sends notification email ***************************************************************************************************
-        public async Task<IActionResult> SendMail()
+        [HttpPost]
+        public async Task<IActionResult> SendMail([FromBody] WorkOrderHelperModel workOrder)
         {
             var currentUser = await _userManager.GetUserAsync(HttpContext.User);
             var roles = _userManager.GetRolesAsync(currentUser).Result;
             List<ApplicationUser> applicationUsers = new List<ApplicationUser>();
             string usersList = "";
+            string status = workOrder.Status;
+            string currentUserRole = _userManager.GetRolesAsync(currentUser).Result[0];
+            var htmlSubject = "Sign Request";
 
-            switch (roles[0])
+            if (status == "CREATED" || status == "APPROVED")
             {
-                case "USER":
-                    applicationUsers = GetUsersInRole("SUPERVISOR").Result.ToList();
-
-                    //filter supervisor that belongs to user's maintenance section
-                    applicationUsers = applicationUsers
-                        .Where(user => user.MaintenanceSectionId == currentUser.MaintenanceSectionId)
+                applicationUsers = GetUsersInRole("SUPERVISOR").Result.ToList();
+                var maintenanceSectionId = currentUser.MaintenanceSectionId;
+                if (currentUserRole == "ADMIN")
+                    maintenanceSectionId = workOrder.MaterialRequestedById;
+                applicationUsers = applicationUsers
+                        .Where(user => user.MaintenanceSectionId == maintenanceSectionId)
                         .ToList();
-
-                    foreach (ApplicationUser user in applicationUsers)
-                    {
-                        usersList += user.Email + ";";
-                    }
-                    usersList = usersList.Remove(usersList.Length - 1, 1);
-
-                    break;
-                case "SUPERVISOR":
-                    usersList = "CRP_Sign_Design@txdot.gov";
-                    break;
+                foreach (ApplicationUser user in applicationUsers)
+                {
+                    usersList += user.Email + ";";
+                }
+                usersList = usersList.Remove(usersList.Length - 1, 1);
             }
-
-            TextInfo textInfo = CultureInfo.CurrentCulture.TextInfo;
-            string maintenanceSectionName = textInfo.ToTitleCase(GetMaintenanceSectionName(currentUser.MaintenanceSectionId).ToLower());
-
-            string htmlSubject = "Sign Request from " + maintenanceSectionName;
-
+            else if(status == "REQUESTED")
+            {
+                usersList = "CRP_Sign_Design@txdot.gov";
+                TextInfo textInfo = CultureInfo.CurrentCulture.TextInfo;
+                string maintenanceSectionName = textInfo.ToTitleCase(GetMaintenanceSectionName(currentUser.MaintenanceSectionId).ToLower());
+                htmlSubject = htmlSubject + " from " + maintenanceSectionName;
+            }
+            htmlSubject = htmlSubject + " for work order #" + workOrder.Id;                    
             string htmlMessage = "<h2>A new sign request has been updated</h2>" +
-                "<h4>Please login to your account to see updated request</h4>";
+                "<h4>Please login to your account to see updated request. To login, click <a href='https://signdesign.azurewebsites.net/'>here</a>.</h4>";
 
             await _eMailSender.SendEmailAsync(usersList, htmlSubject , htmlMessage);
             return View("Index");
