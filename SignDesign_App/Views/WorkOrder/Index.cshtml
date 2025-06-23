@@ -128,7 +128,7 @@
                     this.cells.item(8).getElementsByClassName("k-grid-delete")[0].setAttribute("disabled", true);
             }
             else if (this.cells.item(6).innerHTML == "AREA ENGINEER") {
-                if ("@currentUserRole" == "USER" || "@currentUserRole" == "ADMIN") {
+                if ("@currentUserRole" == "USER" || "@currentUserRole" == "ADMIN" || "@currentUserRole" == "SUPERVISOR") {
                     this.cells.item(8).getElementsByClassName("k-grid-edit")[0].setAttribute("disabled", true);
                     this.cells.item(8).getElementsByClassName("k-grid-delete")[0].setAttribute("disabled", true);
                 }
@@ -1396,11 +1396,11 @@
         if(btnType == "Submit"){       
             if(currentWorkOrderStatus == "DRAFT")
                 workOrder.Status = "CREATED";
-            else if(currentWorkOrderStatus == "CREATED")
+            else if(currentWorkOrderStatus == "CREATED" && !requireEngineerApproval)
                 workOrder.Status = "REQUESTED";
-            else if(currentWorkOrderStatus == "REQUESTED" && requireEngineerApproval)
+            else if(currentWorkOrderStatus == "CREATED" && requireEngineerApproval)
                 workOrder.Status = "AREA ENGINEER";
-            else if(currentWorkOrderStatus == "REQUESTED" || currentWorkOrderStatus == "AREA ENGINEER")
+            else
                 workOrder.Status =  "APPROVED";
         }
         //alert(JSON.stringify(workOrder));
