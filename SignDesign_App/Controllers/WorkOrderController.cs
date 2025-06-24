@@ -131,6 +131,8 @@ namespace SignDesignCorpusApp.Controllers
             string currentUserRole = _userManager.GetRolesAsync(currentUser).Result[0];
             if (currentUserRole == "USER" || currentUserRole == "SUPERVISOR")
                 workOrders = workOrders.Where(x => x.MaterialRequestedById == currentUser.MaintenanceSectionId);
+            else if(currentUserRole == "ENGINEER") //only show work orders that are in AREA ENGINEER status
+                workOrders = workOrders.Where(x => x.Status == "AREA ENGINEER");
             DataSourceResult dsResult = workOrders.ToDataSourceResult(request);            
             return Json(dsResult);
         }
@@ -341,9 +343,10 @@ namespace SignDesignCorpusApp.Controllers
                         .ToList();
                 foreach (ApplicationUser user in applicationUsers)
                 {
-                    usersList += user.Email + ";";
+                    usersList += user.Email + ";";                    
+                }
+                if (usersList.Length > 0)
                     usersList = usersList.Remove(usersList.Length - 1, 1);
-                }                
             }
             else if(status == "REQUESTED")
             {

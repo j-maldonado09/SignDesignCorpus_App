@@ -1396,7 +1396,7 @@
         if(btnType == "Submit"){       
             if(currentWorkOrderStatus == "DRAFT")
                 workOrder.Status = "CREATED";
-            else if(currentWorkOrderStatus == "CREATED" && !requireEngineerApproval)
+            else if((currentWorkOrderStatus == "CREATED" && !requireEngineerApproval) || currentWorkOrderStatus == "AREA ENGINEER")
                 workOrder.Status = "REQUESTED";
             else if(currentWorkOrderStatus == "CREATED" && requireEngineerApproval)
                 workOrder.Status = "AREA ENGINEER";
