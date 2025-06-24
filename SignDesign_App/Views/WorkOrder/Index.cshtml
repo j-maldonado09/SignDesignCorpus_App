@@ -44,9 +44,12 @@
     <filterable enabled="true" />
     <pageable button-count="8" refresh="true" page-sizes="new int[] { 10, 25, 50, 75 }">
     </pageable>
-    <toolbar> 
-        <toolbar-button name="create" text="New Sign Request"></toolbar-button> 
-    </toolbar>
+    @if(currentUserRole != "ENGINEER")
+    {
+        <toolbar>
+            <toolbar-button name="create" text="New Sign Request"></toolbar-button>
+        </toolbar>
+    }    
     <columns>
         <column field="Id" title="Id" hidden=true/>
         @*<column field="Number" title="Number" />*@
@@ -1396,7 +1399,7 @@
         if(btnType == "Submit"){       
             if(currentWorkOrderStatus == "DRAFT")
                 workOrder.Status = "CREATED";
-            else if(currentWorkOrderStatus == "CREATED" && !requireEngineerApproval)
+            else if((currentWorkOrderStatus == "CREATED" && !requireEngineerApproval) || currentWorkOrderStatus == "AREA ENGINEER")
                 workOrder.Status = "REQUESTED";
             else if(currentWorkOrderStatus == "CREATED" && requireEngineerApproval)
                 workOrder.Status = "AREA ENGINEER";
