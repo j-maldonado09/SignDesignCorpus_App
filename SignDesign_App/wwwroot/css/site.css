@@ -29,6 +29,12 @@ body {
     width: 300px;
 }
 
+.status-css-draft {
+    background-color: #6c757d;
+    color: white;
+    margin: auto;
+}
+
 .status-css-created {
     background-color: #dc5765;
     color: white;
