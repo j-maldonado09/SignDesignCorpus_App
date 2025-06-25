@@ -114,7 +114,8 @@ namespace SignDesignCorpusApp.Controllers
         [HttpPost]
         public IActionResult Create([DataSourceRequest] DataSourceRequest request, [FromBody] WorkOrderHelperModel workOrder)
         {
-            _workOrderRepository.Create(workOrder);
+            int workOrderId = _workOrderRepository.Create(workOrder);
+            workOrder.Id = workOrderId;
             _workOrderRepository.DisposeDBObjects();
             return Json(new[] { workOrder }.ToDataSourceResult(request, ModelState));
         }

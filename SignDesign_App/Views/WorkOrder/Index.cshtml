@@ -1370,6 +1370,7 @@
             contentType: 'application/json; charset=utf-8',
             data: JSON.stringify(workOrder),
             success: function (result) {
+                var workOrderId = result.Data[0].Id;
                 const message = "Work order was created";
                 if(btnType == "Submit")
                     notifyButton(message, workOrder);
