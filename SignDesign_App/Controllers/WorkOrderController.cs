@@ -90,10 +90,13 @@ namespace SignDesignCorpusApp.Controllers
             ViewData["maintenanceSections"] = GetMaintenanceSections();
 
             //var users = GetUsersInRole("SUPERVISOR").Result;
-            ViewData["maintenanceSectionRequestors"] = GetUsersInRole("USER").Result;
-            ViewData["maintenanceSectionApprovers"] = GetUsersInRole("SUPERVISOR").Result;
+            var users = GetUsersInRole("USER").Result;
+            var supervisors = GetUsersInRole("SUPERVISOR").Result;
+            var admins = GetUsersInRole("ADMIN").Result;
+            ViewData["maintenanceSectionRequestors"] = users.Concat(supervisors).Concat(admins).Distinct();
+            ViewData["maintenanceSectionApprovers"] = supervisors;
             ViewData["areaEngineers"] = GetUsersInRole("ENGINEER").Result;
-            ViewData["districtApprovers"] = GetUsersInRole("ADMIN").Result;
+            ViewData["districtApprovers"] = admins;
             //ViewData["currentUserId"] = CheckCurrentUserRole("SUPERVISOR").Result;
 
             return View();

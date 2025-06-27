@@ -247,8 +247,13 @@
             }
             $('<button type="button" class="k-button k-button-md k-button-rectangle k-rounded-md k-button-solid k-button-solid-secondary" onclick="SaveOrUpdate(\'Save\')"><span class="k-button-text">Save</span></button>').insertAfter(".k-grid-update");
             
-            $('#approvedByAreaEngineer').data("kendoDropDownList").enable(false);
-            $('#approvedByAreaEngineerDate').data("kendoDatePicker").enable(false);
+            const isEnabled = isNew || currentWorkOrderStatus == "DRAFT" ? false : true; //for new or draft work orders disable fields
+            $('#approvedByMaintenance').data("kendoDropDownList").enable(isEnabled);
+            $('#approvedByMaintenanceDate').data("kendoDatePicker").enable(isEnabled);
+            $('#approvedByAreaEngineer').data("kendoDropDownList").enable(isEnabled);
+            $('#approvedByAreaEngineerDate').data("kendoDatePicker").enable(isEnabled);
+            $('#approvedByDistrict').data("kendoDropDownList").enable(isEnabled);
+            $('#approvedByDistrictDate').data("kendoDatePicker").enable(isEnabled);
         }
         else if("@currentUserRole" == "SUPERVISOR") {
             if(isNew || (currentWorkOrderStatus != "APPROVED" && currentWorkOrderStatus != "RECEIVED" && currentWorkOrderStatus != "INSTALLED")){
@@ -256,10 +261,13 @@
             }            
             $('<button type="button" class="k-button k-button-md k-button-rectangle k-rounded-md k-button-solid k-button-solid-secondary" onclick="SaveOrUpdate(\'Save\')"><span class="k-button-text">Save</span></button>').insertAfter(".k-grid-update");
 
-            $('#approvedByAreaEngineer').data("kendoDropDownList").enable(false);
-            $('#approvedByAreaEngineerDate').data("kendoDatePicker").enable(false);
-            $('#approvedByDistrict').data("kendoDropDownList").enable(false);
-            $('#approvedByDistrictDate').data("kendoDatePicker").enable(false);
+            var isEnabled = (isNew || currentWorkOrderStatus == "DRAFT" || currentWorkOrderStatus == "APPROVED") ? false : true; //for new, draft, or approved work orders disable fields
+            $('#approvedByMaintenance').data("kendoDropDownList").enable(isEnabled);
+            $('#approvedByMaintenanceDate').data("kendoDatePicker").enable(isEnabled);
+            $('#approvedByAreaEngineer').data("kendoDropDownList").enable(isEnabled);
+            $('#approvedByAreaEngineerDate').data("kendoDatePicker").enable(isEnabled);
+            $('#approvedByDistrict').data("kendoDropDownList").enable(isEnabled);
+            $('#approvedByDistrictDate').data("kendoDatePicker").enable(isEnabled);
         }
         else if ("@currentUserRole" == "ENGINEER") {
             $('<button type="button" class="k-button k-button-md k-button-rectangle k-rounded-md k-button-solid k-button-solid-primary" onclick="SaveOrUpdate(\'Submit\')"><span class="k-icon k-i-check k-button-icon"></span><span class="k-button-text">Approve</span></button>').insertAfter(".k-grid-update");
@@ -278,12 +286,13 @@
             }
             $('<button type="button" class="k-button k-button-md k-button-rectangle k-rounded-md k-button-solid k-button-solid-secondary" onclick="SaveOrUpdate(\'Save\')"><span class="k-button-text">Save</span></button>').insertAfter(".k-grid-update");
 
-            $('#approvedByMaintenance').data("kendoDropDownList").enable(false);
-            $('#approvedByMaintenanceDate').data("kendoDatePicker").enable(false);
-            $('#approvedByAreaEngineer').data("kendoDropDownList").enable(false);
-            $('#approvedByAreaEngineerDate').data("kendoDatePicker").enable(false);
-            $('#approvedByDistrict').data("kendoDropDownList").enable(false);
-            $('#approvedByDistrictDate').data("kendoDatePicker").enable(false);
+            var isEnabled = (isNew || currentWorkOrderStatus == "DRAFT" || currentWorkOrderStatus == "APPROVED") ? false : true; //for new, draft, or approved work orders disable fields
+            $('#approvedByMaintenance').data("kendoDropDownList").enable(isEnabled);
+            $('#approvedByMaintenanceDate').data("kendoDatePicker").enable(isEnabled);
+            $('#approvedByAreaEngineer').data("kendoDropDownList").enable(isEnabled);
+            $('#approvedByAreaEngineerDate').data("kendoDatePicker").enable(isEnabled);
+            $('#approvedByDistrict').data("kendoDropDownList").enable(isEnabled);
+            $('#approvedByDistrictDate').data("kendoDatePicker").enable(isEnabled);
         }
 
         if ($('#approvedByDistrict').data("kendoDropDownList").value().toString().length == 0) {
@@ -1370,10 +1379,9 @@
             contentType: 'application/json; charset=utf-8',
             data: JSON.stringify(workOrder),
             success: function (result) {
-                var workOrderId = result.Data[0].Id;
                 const message = "Work order was created";
                 if(btnType == "Submit")
-                    notifyButton(message, workOrder);
+                    notifyButton(message, result.Data[0]);
                 else
                     fnShowMessage(message, "Success");
                 RefreshGrid();
@@ -1416,7 +1424,7 @@
             success: function (result) {
                 const message = "Information was updated";
                 if(btnType == "Submit")
-                    notifyButton(message, workOrder);
+                    notifyButton(message, result.Data[0]);
                 else
                     fnShowMessage(message, "Success");
                 RefreshGrid();    
