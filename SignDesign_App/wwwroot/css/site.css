@@ -71,6 +71,15 @@ body {
     text-align: center;
 }
 
+.red-circle {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    background-color: red;
+    border-radius: 50%;
+    margin-right: 4px;
+    vertical-align: middle;
+}
 
 
 /* #region custom Kendo UI styles */

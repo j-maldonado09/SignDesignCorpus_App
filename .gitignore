@@ -361,3 +361,4 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+/SignDesign_App/wwwroot/SignRequestPDFs/SignRequest_16307-1181.pdf

@@ -192,163 +192,8 @@
 		@* Block for set of data that includes sign info and map component ******************************************************************************************** *@
 
 		<div id="sign-container">
-			@*<div id="sign-form-1">
-
-				<hr />
-
-				<div id="padding-y-1" class="row py-3">
-					<div id="left-1" class="form-group col-12 col-sm-12 col-md-6 col-lg-6 col-xl-6">
-						<div id="first-row-1" class="row pt-3">
-							<div id="first-row-left-1" class="form-group col-12 col-sm-12 col-md-6 col-lg-6 col-xl-6">
-								<h6 class="pt-3 align-text-bottom">NIGP :</h6>
-								<kendo-textarea id="nigp-1" name="nigp" is-in-client-template=true>
-								</kendo-textarea>
-							</div>
-
-							<div id="first-row-right-1" class="form-group col-12 col-sm-12 col-md-6 col-lg-6 col-xl-6">
-								<h6 class="pt-3">Quantity:</h6>
-								<kendo-numerictextbox id="quantity-1" name="quantity" value="1" format="n0" min="1" max="10" is-in-client-template=true>
-								</kendo-numerictextbox>
-							</div>
-						</div>
-					
-						<h6 class="align-text-bottom, pt-3">Image Upload</h6>
-						<kendo-upload id="files-1" name="files" multiple="false" show-file-list="true" is-in-client-template=true>
-							<async auto-upload="true" 
-								save-url="@Url.Action("SaveUploadedImage", "WorkOrder")" 
-								remove-url="@Url.Action("Remove","Upload")" />
-						</kendo-upload>
-
-						<div id="second-row-1" class="row pt-3">
-							<div id="second-row-left-1" class="form-group col-12 col-sm-12 col-md-6 col-lg-6 col-xl-6">
-								<h6 class="pt-3">Latitude:</h6>
-								<kendo-textarea id="latitude-1" name="latitude" is-in-client-template=true>
-								</kendo-textarea>
-							</div>
-
-							<div id="second-row-right-1" class="form-group col-12 col-sm-12 col-md-6 col-lg-6 col-xl-6">
-								<h6 class="pt-3">Longitude:</h6>
-								<kendo-textarea id="longitude-1" name="longitude" is-in-client-template=true>
-								</kendo-textarea>
-							</div>
-						</div>
-					
-						<h6 class="pt-3">Instructions:</h6>
-						<kendo-textarea  id="instructions-1" name="instructions" rows="2" is-in-client-template=true>
-						</kendo-textarea>
-						<h6 class="pt-3">Special Instructions:</h6>
-						<kendo-textarea id="specialInstructions-1" name="specialInstructions" rows="3" is-in-client-template=true>
-						</kendo-textarea>
-					</div>
-
-					<div id="right-1" class="form-group pt-3 col-12 col-sm-12 col-md-6 col-lg-6 col-xl-6">
-						<kendo-map id="map-1" name="map" is-in-client-template=true center="new double[] { 27.8006, -97.3964 }" zoom="11" on-click="onClick" style="height:510px">
-							<layer-defaults>
-								<map-marker>
-									<tooltip>
-										<popup-animation>
-											<open duration="1200" effects="zoom:in" />
-										</popup-animation>
-									</tooltip>
-								</map-marker>
-							</layer-defaults>
-							<markers>
-								<map-marker location="new double[] { 30.268107, -97.744821 }"  shape="MapMarkersShape.PinTarget">
-									<tooltip content="Corpus Christi, TX"></tooltip>
-								</map-marker>
-							</markers>
-							<layers>
-								<layer type="MapLayerType.Bing"
-									imagery-set="MapLayersImagerySet.AerialWithLabels"
-									key="AqaPuZWytKRUA8Nm5nqvXHWGL8BDCXvK8onCl2PkC581Zp3T_fYAQBiwIphJbRAK">
-								</layer>
-							</layers>
-						</kendo-map>
-					</div>
-				</div>
-			</div>*@
+			@* Sign container is defined but contents are created dynamically in Javascript *@
 		</div>
-
-		
-
-
-		@*<div id="sign-form">
-
-			<hr />
-
-			<div class="row pt-3">
-				<div class="form-group col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4">
-					<h6 class="align-text-bottom">NIGP :</h6>
-					<kendo-dropdownlist id="nigp" name="nigp" datatextfield="Name" datavaluefield="Id" auto-bind="false" filter="FilterType.StartsWith" is-in-client-template=true>
-					 <datasource type="DataSourceTagHelperType.Ajax" server-operation="true">
-						 <transport>
-							 <read url="WorkOrder/GetNIGPs"/>
-						 </transport>
-					 </datasource>
-				 </kendo-dropdownlist>
-					<h6 class="pt-3">Quantity:</h6>
-					<kendo-numerictextbox id="quantity" name="quantity" is-in-client-template=true>
-					</kendo-numerictextbox>
-					<h6 class="pt-3">Instructions:</h6>
-					<kendo-textarea  id="instructions" name="instructions" rows="4" is-in-client-template=true>
-					</kendo-textarea>
-				</div>
-
-				<div class="form-group col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4">
-					<h6 class="align-text-bottom">Image Upload</h6>
-					<kendo-upload id="files" name="files" multiple="false" is-in-client-template=true>
-						<async auto-upload="true" 
-							save-url="@Url.Action("SaveUploadedImage", "WorkOrder")" 
-							remove-url="@Url.Action("Remove","Upload")" />
-					</kendo-upload>
-					<div class="row pt-3">
-						<div class="form-group col-6 col-sm-6 col-md-6 col-lg-6 col-xl-6">
-							<h6 class="pt-3">Latitude:</h6>
-							<kendo-textarea id="latitude" name="latitude" is-in-client-template=true>
-							</kendo-textarea>
-						</div>
-						<div class="form-group col-6 col-sm-6 col-md-6 col-lg-6 col-xl-6">
-							<h6 class="pt-3">Longitude:</h6>
-							<kendo-textarea id="longitude" name="longitude" is-in-client-template=true>
-							</kendo-textarea>
-						</div>
-					</div>
-				</div>
-
-				<div class="form-group col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4">
-					<kendo-map name="map" is-in-client-template=true center="new double[] { 27.8006, -97.3964 }" zoom="11" on-click="onClick" style="max-height:300px">
-						<layer-defaults>
-							<map-marker>
-								<tooltip>
-									<popup-animation>
-										<open duration="1200" effects="zoom:in" />
-									</popup-animation>
-								</tooltip>
-							</map-marker>
-						</layer-defaults>
-						<markers>
-							<map-marker location="new double[] { 30.268107, -97.744821 }"  shape="MapMarkersShape.PinTarget">
-								<tooltip content="Corpus Christi, TX"></tooltip>
-							</map-marker>
-						</markers>
-						<layers>
-							<layer type="MapLayerType.Bing"
-								imagery-set="MapLayersImagerySet.AerialWithLabels"
-								key="AqaPuZWytKRUA8Nm5nqvXHWGL8BDCXvK8onCl2PkC581Zp3T_fYAQBiwIphJbRAK">
-							</layer>
-						</layers>
-					</kendo-map>
-				</div>
-			</div>
-
-			<div class="row py-3">
-				<div class="form-group col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
-					<h6 class="pt-3">Special Instructions</h6>
-					<kendo-textarea id="specialInstructions" name="specialInstructions" rows="5" is-in-client-template=true>
-					</kendo-textarea>
-				</div>
-			</div>
-		</div>*@
 
 		<div class="text-center">
 			<kendo-button theme-color="ThemeColor.Primary" name="textButton" is-in-client-template=true on-click="addSegment"> Add New Sign </kendo-button>
@@ -356,7 +201,19 @@
 
 		<hr style="height:5px;background-color:black" />
 
-		@* Block for requested and approved by section *@
+		@* Checkbox to set if the request will be on hold until next fiscal year ************************************************************************ *@
+
+		<div class="row pt-3 pb-3">
+			<div class="form-group col-12 col-sm-4 col-md-4 col-lg-2 col-xl-2">
+				<h6> Is this work order on hold? </h6>
+			</div>
+			<div class="form-group col-12 col-sm-8 col-md-8 col-lg-5 col-xl-5">
+				<kendo-checkbox id="isHold" name="isHold" size=ComponentSize.Large rounded=Rounded.Large is-in-client-template=true>
+				</kendo-checkbox>
+			</div>
+		</div>
+
+		@* Block for requested and approved by section *********************************************************************************************************** *@
 
 		<div class="row pt-3">
 			<div class="form-group col-12 col-sm-4 col-md-4 col-lg-2 col-xl-2">

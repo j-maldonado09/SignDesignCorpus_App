@@ -28,11 +28,12 @@
                 <fields>
                     <field name="Id" type="number" editable="false"></field>
                     <field name="Number" type="String"></field>
-                    <field name="MaterialRequestedFromId" type="number" editable="false"></field>
-                    <field name="MaterialRequestedFromName" type="String"></field>
+                    @* <field name="MaterialRequestedFromId" type="number" editable="false"></field>
+                    <field name="MaterialRequestedFromName" type="String"></field> *@
                     <field name="MaterialRequestedById" type="number" editable="false"></field>
                     <field name="MaterialRequestedByName" type="String"></field>
                     <field name="Status" type="String"></field>
+                    <field name="IsHold" type="String"></field>
                     <field name="StatusDate" type="Date"></field>
                 </fields>
             </model>
@@ -54,11 +55,13 @@
         <column field="Id" title="Id" hidden=true/>
         @*<column field="Number" title="Number" />*@
         <column field="Number" template="#=template(data)#" title="Number" width="180"/>
-        <column field="MaterialRequestedFromId" title="Requested From" hidden=true/>
-        <column field="MaterialRequestedFromName" title="Requested From" width="200"/>
+        @* <column field="MaterialRequestedFromId" title="Requested From" hidden=true/>
+        <column field="MaterialRequestedFromName" title="Requested From" width="200"/> *@
         <column field="MaterialRequestedById" title="Requested By" hidden=true/>
         <column field="MaterialRequestedByName" title="Requested By" />
         <column field="Status" title="Status" width="180"/>
+        @* <column field="IsHold" title="Hold" width="140" /> *@
+        <column field="IsHold" template="#=holdTemplate(data)#" title="Hold" width="120" />
         <column field="StatusDate" title="Date" format="{0:MM/dd/yyyy}" width="180"/>
         <column width="110">
             <commands>
@@ -97,8 +100,6 @@
 
     // Sets that the popup will be closed. Used by grid's on-close event ***********************************************************************************
     function onPopupClose(e){
-        //alert("on popup close: " + closePopup);
-
         closePopup = true;
         RefreshGrid();
     }
@@ -106,6 +107,17 @@
     // Set the work order number by merging the maintenance section number and the work order id *************************************************************
     function template(data) {
         return `<div> ${ data.MaterialRequestedByNumber}-${ data.Id} <div/>`
+    }
+
+    // Set the hold template when the IsHold property is set to true *************************************************************
+    function holdTemplate(data) {
+        var value = data.IsHold;
+
+        if (value === "true") {
+            return `<span class="red-circle"></span> HOLD`;
+        }
+
+        return "";
     }
 
     // Set template for 'Status' column in work order grid ***************************************************************************************************
@@ -124,29 +136,29 @@
 
             // Check if edit button will be disabled
             // Column 6 is for status and column 8 is for edit and delete buttons
-            if (this.cells.item(6).innerHTML == "CREATED") {
+            if (this.cells.item(4).innerHTML == "CREATED") {
                 if ("@currentUserRole" == "ENGINEER" || "@currentUserRole" == "ADMIN" || "@currentUserRole" == "USER")
-                    this.cells.item(8).getElementsByClassName("k-grid-edit")[0].setAttribute("disabled", true);
+                    this.cells.item(7).getElementsByClassName("k-grid-edit")[0].setAttribute("disabled", true);
                 if ("@currentUserRole" == "ADMIN")
-                    this.cells.item(8).getElementsByClassName("k-grid-delete")[0].setAttribute("disabled", true);
+                    this.cells.item(7).getElementsByClassName("k-grid-delete")[0].setAttribute("disabled", true);
             }
-            else if (this.cells.item(6).innerHTML == "AREA ENGINEER") {
+            else if (this.cells.item(4).innerHTML == "AREA ENGINEER") {
                 if ("@currentUserRole" == "USER" || "@currentUserRole" == "ADMIN" || "@currentUserRole" == "SUPERVISOR") {
-                    this.cells.item(8).getElementsByClassName("k-grid-edit")[0].setAttribute("disabled", true);
-                    this.cells.item(8).getElementsByClassName("k-grid-delete")[0].setAttribute("disabled", true);
+                    this.cells.item(7).getElementsByClassName("k-grid-edit")[0].setAttribute("disabled", true);
+                    this.cells.item(7).getElementsByClassName("k-grid-delete")[0].setAttribute("disabled", true);
                 }
             }
-            else if (this.cells.item(6).innerHTML == "REQUESTED") {
+            else if (this.cells.item(4).innerHTML == "REQUESTED") {
                 if ("@currentUserRole" == "USER" || "@currentUserRole" == "SUPERVISOR" || "@currentUserRole" == "ENGINEER")
-                    this.cells.item(8).getElementsByClassName("k-grid-edit")[0].setAttribute("disabled", true);
+                    this.cells.item(7).getElementsByClassName("k-grid-edit")[0].setAttribute("disabled", true);
                 if ("@currentUserRole" == "SUPERVISOR")
-                        this.cells.item(8).getElementsByClassName("k-grid-delete")[0].setAttribute("disabled", true);
+                        this.cells.item(7).getElementsByClassName("k-grid-delete")[0].setAttribute("disabled", true);
             }
-            else if (this.cells.item(6).innerHTML == "APPROVED" || this.cells.item(6).innerHTML == "RECEIVED" || this.cells.item(6).innerHTML == "INSTALLED") {
+            else if (this.cells.item(4).innerHTML == "APPROVED" || this.cells.item(4).innerHTML == "RECEIVED" || this.cells.item(4).innerHTML == "INSTALLED") {
                 if ("@currentUserRole" == "ENGINEER")
-                    this.cells.item(8).getElementsByClassName("k-grid-edit")[0].setAttribute("disabled", true);
+                    this.cells.item(7).getElementsByClassName("k-grid-edit")[0].setAttribute("disabled", true);
                 if ("@currentUserRole" == "USER" || "@currentUserRole" == "SUPERVISOR" || "@currentUserRole" == "ENGINEER")
-                    this.cells.item(8).getElementsByClassName("k-grid-delete")[0].setAttribute("disabled", true);
+                    this.cells.item(7).getElementsByClassName("k-grid-delete")[0].setAttribute("disabled", true);
             }
 
 
@@ -247,13 +259,13 @@
             }
             $('<button type="button" class="k-button k-button-md k-button-rectangle k-rounded-md k-button-solid k-button-solid-secondary" onclick="SaveOrUpdate(\'Save\')"><span class="k-button-text">Save</span></button>').insertAfter(".k-grid-update");
             
-            const isEnabled = isNew || currentWorkOrderStatus == "DRAFT" ? false : true; //for new or draft work orders disable fields
-            $('#approvedByMaintenance').data("kendoDropDownList").enable(isEnabled);
-            $('#approvedByMaintenanceDate').data("kendoDatePicker").enable(isEnabled);
-            $('#approvedByAreaEngineer').data("kendoDropDownList").enable(isEnabled);
-            $('#approvedByAreaEngineerDate').data("kendoDatePicker").enable(isEnabled);
-            $('#approvedByDistrict').data("kendoDropDownList").enable(isEnabled);
-            $('#approvedByDistrictDate').data("kendoDatePicker").enable(isEnabled);
+            //const isEnabled = isNew || currentWorkOrderStatus == "DRAFT" ? false : true; //for new or draft work orders disable fields
+            //$('#approvedByMaintenance').data("kendoDropDownList").enable(isEnabled);
+            //$('#approvedByMaintenanceDate').data("kendoDatePicker").enable(isEnabled);
+            $('#approvedByAreaEngineer').data("kendoDropDownList").enable(false);
+            $('#approvedByAreaEngineerDate').data("kendoDatePicker").enable(false);
+            //$('#approvedByDistrict').data("kendoDropDownList").enable(isEnabled);
+            //$('#approvedByDistrictDate').data("kendoDatePicker").enable(isEnabled);
         }
         else if("@currentUserRole" == "SUPERVISOR") {
             if(isNew || (currentWorkOrderStatus != "APPROVED" && currentWorkOrderStatus != "RECEIVED" && currentWorkOrderStatus != "INSTALLED")){
@@ -261,13 +273,13 @@
             }            
             $('<button type="button" class="k-button k-button-md k-button-rectangle k-rounded-md k-button-solid k-button-solid-secondary" onclick="SaveOrUpdate(\'Save\')"><span class="k-button-text">Save</span></button>').insertAfter(".k-grid-update");
 
-            var isEnabled = (isNew || currentWorkOrderStatus == "DRAFT" || currentWorkOrderStatus == "APPROVED") ? false : true; //for new, draft, or approved work orders disable fields
-            $('#approvedByMaintenance').data("kendoDropDownList").enable(isEnabled);
-            $('#approvedByMaintenanceDate').data("kendoDatePicker").enable(isEnabled);
-            $('#approvedByAreaEngineer').data("kendoDropDownList").enable(isEnabled);
-            $('#approvedByAreaEngineerDate').data("kendoDatePicker").enable(isEnabled);
-            $('#approvedByDistrict').data("kendoDropDownList").enable(isEnabled);
-            $('#approvedByDistrictDate').data("kendoDatePicker").enable(isEnabled);
+            //var isEnabled = (isNew || currentWorkOrderStatus == "DRAFT" || currentWorkOrderStatus == "APPROVED") ? false : true; //for new, draft, or approved work orders disable fields
+            //$('#approvedByMaintenance').data("kendoDropDownList").enable(isEnabled);
+            //$('#approvedByMaintenanceDate').data("kendoDatePicker").enable(isEnabled);
+            $('#approvedByAreaEngineer').data("kendoDropDownList").enable(false);
+            $('#approvedByAreaEngineerDate').data("kendoDatePicker").enable(false);
+            $('#approvedByDistrict').data("kendoDropDownList").enable(false);
+            $('#approvedByDistrictDate').data("kendoDatePicker").enable(false);
         }
         else if ("@currentUserRole" == "ENGINEER") {
             $('<button type="button" class="k-button k-button-md k-button-rectangle k-rounded-md k-button-solid k-button-solid-primary" onclick="SaveOrUpdate(\'Submit\')"><span class="k-icon k-i-check k-button-icon"></span><span class="k-button-text">Approve</span></button>').insertAfter(".k-grid-update");
@@ -286,13 +298,13 @@
             }
             $('<button type="button" class="k-button k-button-md k-button-rectangle k-rounded-md k-button-solid k-button-solid-secondary" onclick="SaveOrUpdate(\'Save\')"><span class="k-button-text">Save</span></button>').insertAfter(".k-grid-update");
 
-            var isEnabled = (isNew || currentWorkOrderStatus == "DRAFT" || currentWorkOrderStatus == "APPROVED") ? false : true; //for new, draft, or approved work orders disable fields
-            $('#approvedByMaintenance').data("kendoDropDownList").enable(isEnabled);
-            $('#approvedByMaintenanceDate').data("kendoDatePicker").enable(isEnabled);
-            $('#approvedByAreaEngineer').data("kendoDropDownList").enable(isEnabled);
-            $('#approvedByAreaEngineerDate').data("kendoDatePicker").enable(isEnabled);
-            $('#approvedByDistrict').data("kendoDropDownList").enable(isEnabled);
-            $('#approvedByDistrictDate').data("kendoDatePicker").enable(isEnabled);
+            //var isEnabled = (isNew || currentWorkOrderStatus == "DRAFT" || currentWorkOrderStatus == "APPROVED") ? false : true; //for new, draft, or approved work orders disable fields
+            $('#approvedByMaintenance').data("kendoDropDownList").enable(false);
+            $('#approvedByMaintenanceDate').data("kendoDatePicker").enable(false);
+            $('#approvedByAreaEngineer').data("kendoDropDownList").enable(false);
+            $('#approvedByAreaEngineerDate').data("kendoDatePicker").enable(false);
+            $('#approvedByDistrict').data("kendoDropDownList").enable(false);
+            $('#approvedByDistrictDate').data("kendoDatePicker").enable(false);
         }
 
         if ($('#approvedByDistrict').data("kendoDropDownList").value().toString().length == 0) {
@@ -511,6 +523,13 @@
 			resTypeDropdown.value(dropdownVal);
 			resTypeDropdown.enable(isEnabled);
 		}
+
+        dropdownVal = jsonResult[0].IsHold;
+        var isHoldCheckBox = $("#isHold").data("kendoCheckBox");
+        if (isHoldCheckBox) {
+            isHoldCheckBox.check(dropdownVal);
+            isHoldCheckBox.enable(isEnabled);
+        }
 
         dropdownVal = jsonResult[0].RequestedByMaintenanceId;
 		var requestedByDropdown = $("#requestedByMaintenance").data("kendoDropDownList");
@@ -1041,7 +1060,7 @@
 
         //$('#left-' + cloneCount).append('<input id="files-' + cloneCount + '" name="files" type="file"/>');
         var uploadId = 'files-sign-' + cloneCount;
-        $('#third-row-left-' + cloneCount).append('<input id="' + uploadId + '" name="' + uploadId + '" type="file"/>');
+        $('#third-row-left-' + cloneCount).append('<input id="' + uploadId + '" name="files" type="file"/>');
         var uploadWidget = $('#' + uploadId).kendoUpload({
             multiple: false,
             async: {
@@ -1496,7 +1515,7 @@
             ApprovedByDistrictDate: $("#approvedByDistrictDate").val().toString().length != 0 ? new Date($("#approvedByDistrictDate").val()) : null,
             SignReceivedDate: $("#signReceivedOnDate").val().toString().length != 0 ? new Date($("#signReceivedOnDate").val()) : null,
             SignInstalledDate: $("#signInstalledOnDate").val().toString().length != 0 ? new Date($("#signInstalledOnDate").val()) : null,
-            IsHold: false,
+            IsHold: $("#isHold").data("kendoCheckBox").check(),
             Status: currentWorkOrderStatus,
             Items: []
         }
