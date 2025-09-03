@@ -268,11 +268,14 @@
             //$('#approvedByDistrictDate').data("kendoDatePicker").enable(isEnabled);
         }
         else if("@currentUserRole" == "SUPERVISOR") {
+            if(!isNew){
+                $('<button type="button" class="k-button k-button-md k-button-rectangle k-rounded-md k-button-solid k-button-solid-dark" onclick="CreatePDF()"><span class="k-icon k-i-file-pdf k-button-icon"></span><span class="k-button-text">Generate PDF</span></button>').insertAfter(".k-grid-update");
+            }
             if(isNew || (currentWorkOrderStatus != "APPROVED" && currentWorkOrderStatus != "RECEIVED" && currentWorkOrderStatus != "INSTALLED")){
                 $('<button type="button" class="k-button k-button-md k-button-rectangle k-rounded-md k-button-solid k-button-solid-primary" onclick="SaveOrUpdate(\'Submit\')"<span class="k-button-text">Save & Submit</span></button>').insertAfter(".k-grid-update");
             }            
             $('<button type="button" class="k-button k-button-md k-button-rectangle k-rounded-md k-button-solid k-button-solid-secondary" onclick="SaveOrUpdate(\'Save\')"><span class="k-button-text">Save</span></button>').insertAfter(".k-grid-update");
-
+            
             //var isEnabled = (isNew || currentWorkOrderStatus == "DRAFT" || currentWorkOrderStatus == "APPROVED") ? false : true; //for new, draft, or approved work orders disable fields
             //$('#approvedByMaintenance').data("kendoDropDownList").enable(isEnabled);
             //$('#approvedByMaintenanceDate').data("kendoDatePicker").enable(isEnabled);
@@ -293,9 +296,12 @@
             
         }
         else if("@currentUserRole" == "USER") {
+            if(!isNew){
+                $('<button type="button" class="k-button k-button-md k-button-rectangle k-rounded-md k-button-solid k-button-solid-dark" onclick="CreatePDF()"><span class="k-icon k-i-file-pdf k-button-icon"></span><span class="k-button-text">Generate PDF</span></button>').insertAfter(".k-grid-update");
+            }
             if(isNew || (currentWorkOrderStatus != "APPROVED" && currentWorkOrderStatus != "RECEIVED" && currentWorkOrderStatus != "INSTALLED")){
                 $('<button type="button" class="k-button k-button-md k-button-rectangle k-rounded-md k-button-solid k-button-solid-primary" onclick="SaveOrUpdate(\'Submit\')"<span class="k-button-text">Save & Submit</span></button>').insertAfter(".k-grid-update");
-            }
+            }            
             $('<button type="button" class="k-button k-button-md k-button-rectangle k-rounded-md k-button-solid k-button-solid-secondary" onclick="SaveOrUpdate(\'Save\')"><span class="k-button-text">Save</span></button>').insertAfter(".k-grid-update");
 
             //var isEnabled = (isNew || currentWorkOrderStatus == "DRAFT" || currentWorkOrderStatus == "APPROVED") ? false : true; //for new, draft, or approved work orders disable fields
