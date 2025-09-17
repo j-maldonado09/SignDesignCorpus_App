@@ -97,6 +97,7 @@
     var isNew;
     var closePopup = true;
     var currentWorkOrderStatus = '';    // current work order status used when editing an existing work order
+    var fileUploadLimit = 3;
 
     // Sets that the popup will be closed. Used by grid's on-close event ***********************************************************************************
     function onPopupClose(e){
@@ -1068,7 +1069,7 @@
         var uploadId = 'files-sign-' + cloneCount;
         $('#third-row-left-' + cloneCount).append('<input id="' + uploadId + '" name="files" type="file"/>');
         var uploadWidget = $('#' + uploadId).kendoUpload({
-            multiple: false,
+            multiple: true,
             async: {
                 saveUrl: '/WorkOrder/SaveUploadedImage',
                 removeUrl: '/WorkOrder/RemoveUploadedImage',
@@ -1091,6 +1092,14 @@
                 if (!isValid) {
                     e.preventDefault(); // Cancel file selection
                     fnShowMessage("Only PNG, JPG, and JPEG are allowed", "Invalid file type");
+                }
+
+                //limit file upload to 3 files
+                var existingFiles = this.getFiles();
+                var totalFiles = existingFiles.length + e.files.length;
+                if (totalFiles > fileUploadLimit) {
+                    e.preventDefault();
+                    fnShowMessage("You can only upload up to " + fileUploadLimit + " files.", "Maximum Upload Limit");
                 }
             },
             success: function(e){
@@ -1126,15 +1135,23 @@
         //$('#left-' + cloneCount).append('<input id="files-' + cloneCount + '" name="files" type="file"/>');
         $('#sixth-row-right-' + cloneCount).append('<input id="files-installed-' + cloneCount + '" name="filesInstalled" type="file"/>');
         $('#files-installed-' + cloneCount).kendoUpload({
-            multiple: false,
+            multiple: true,
             async: {
                 saveUrl: '/WorkOrder/SaveUploadedInstalledImage',
                 removeUrl: '/WorkOrder/RemoveUploadedInstalledImage',
                 autoUpload: true
             },
             files: imageInstalled,
-            select: function(){
+            select: function(e){
                 isReplacingFile = true; //reset flag on file selection
+
+                //limit file upload to 3 files
+                var existingFiles = this.getFiles();
+                var totalFiles = existingFiles.length + e.files.length;
+                if (totalFiles > fileUploadLimit) {
+                    e.preventDefault();
+                    fnShowMessage("You can only upload up to " + fileUploadLimit + " files.", "Maximum Upload Limit");
+                }
             },
             success: function(e){
                 isReplacingFile = false; //reset flag after successful upload
@@ -1171,15 +1188,23 @@
         var attachmentId = 'attachments-' + cloneCount;
         $('#third-row-right-' + cloneCount).append('<input id="' + attachmentId  + '" name="attachments" type="file"/>');
         var attachmentUpload = $('#' + attachmentId).kendoUpload({
-            multiple: false,
+            multiple: true,
             async: {
                 saveUrl: '/WorkOrder/SaveUploadedAttachment',
                 removeUrl: '/WorkOrder/RemoveUploadedAttachment',
                 autoUpload: true
             },
             files: attachment,
-            select: function(){
+            select: function(e){
                 isReplacingFile = true; //reset flag on file selection
+
+                //limit file upload to 3 files
+                var existingFiles = this.getFiles();
+                var totalFiles = existingFiles.length + e.files.length;
+                if (totalFiles > fileUploadLimit) {
+                    e.preventDefault();
+                    fnShowMessage("You can only upload up to " + fileUploadLimit + " files.", "Maximum Upload Limit");
+                }
             },
             success: function(e){
                 isReplacingFile = false; //reset flag after successful upload
@@ -1213,13 +1238,21 @@
                 type: 'POST',
                 data: { fileNames: fileNames },
                 traditional: true,
-                success: function() { //on successful deletion, update html
-                    var selectorPrefix = '#' + e.sender.element.attr('id');
-                    var $uploadElement = $(selectorPrefix).closest('.k-upload');
-                    $uploadElement.find('.k-upload-files').remove();
-                    $uploadElement.addClass("k-upload-empty");
-                    $uploadElement.find('.k-upload-status').remove(); //remove upload status
-                    $uploadElement.find('.k-dropzone-hint').removeClass('k-hidden'); //remove k-hidden class
+                success: function () { //remove matching file rows              
+                    e.files.forEach(function (file) {
+                        var $fileElement = $(e.sender.wrapper)
+                            .find(".k-file")
+                            .filter(function () {
+                                return $(this).find(".k-file-name").text().trim() === file.name;
+                            });
+                        $fileElement.remove();
+                    });
+                    var $uploadElement = $(e.sender.wrapper);                    
+                    if ($uploadElement.find(".k-file").length === 0) {
+                        $uploadElement.addClass("k-upload-empty");
+                        $uploadElement.find('.k-upload-status').remove(); //remove upload status
+                        $uploadElement.find('.k-dropzone-hint').removeClass('k-hidden'); //remove k-hidden class
+                    }
                 }
             });                    
         });
@@ -1251,10 +1284,17 @@
     function onUploadSuccessAux() {
         // $('.k-file-name').eq(cloneCount - 1).click(onUploadClick);
         // $('.k-file-name').eq(cloneCount - 1).mouseover(onUploadMouseOver);
-        // $('.k-file-name').addClass("link-primary");
-        $('#third-row-left-' + cloneCount).find('.k-widget').find('.k-upload-files').find('.k-file').find('.k-file-name-size-wrapper').find('.k-file-name').eq(0).click(onUploadClick);
-        $('#third-row-left-' + cloneCount).find('.k-widget').find('.k-upload-files').find('.k-file').find('.k-file-name-size-wrapper').find('.k-file-name').eq(0).mouseover(onUploadMouseOver);
-        $('#third-row-left-' + cloneCount).find('.k-widget').find('.k-upload-files').find('.k-file').find('.k-file-name-size-wrapper').find('.k-file-name').addClass("link-primary");
+        // $('.k-file-name').addClass("link-primary");     
+        $('#third-row-left-' + cloneCount)
+        .find('.k-widget')
+        .find('.k-upload-files')
+        .find('.k-file')
+        .each(function () {
+            var $fileName = $(this).find('.k-file-name-size-wrapper .k-file-name');
+            $fileName.addClass("link-primary");
+            $fileName.on('click', onUploadClick);
+            $fileName.on('mouseover', onUploadMouseOver);
+        });
     }
 
     // Upload Control Click Event ***********************************************************************************************************************
