@@ -1091,6 +1091,7 @@
 
                 if (!isValid) {
                     e.preventDefault(); // Cancel file selection
+                    isReplacingFile = false; //reset flag if upload is cancelled
                     fnShowMessage("Only PNG, JPG, and JPEG are allowed", "Invalid file type");
                 }
 
@@ -1099,6 +1100,7 @@
                 var totalFiles = existingFiles.length + e.files.length;
                 if (totalFiles > fileUploadLimit) {
                     e.preventDefault();
+					isReplacingFile = false; //reset flag if upload is cancelled
                     fnShowMessage("You can only upload up to " + fileUploadLimit + " files.", "Maximum Upload Limit");
                 }
             },
@@ -1150,6 +1152,7 @@
                 var totalFiles = existingFiles.length + e.files.length;
                 if (totalFiles > fileUploadLimit) {
                     e.preventDefault();
+                    isReplacingFile = false; //reset flag if upload is cancelled
                     fnShowMessage("You can only upload up to " + fileUploadLimit + " files.", "Maximum Upload Limit");
                 }
             },
@@ -1203,6 +1206,7 @@
                 var totalFiles = existingFiles.length + e.files.length;
                 if (totalFiles > fileUploadLimit) {
                     e.preventDefault();
+                    isReplacingFile = false; //reset flag if upload is cancelled
                     fnShowMessage("You can only upload up to " + fileUploadLimit + " files.", "Maximum Upload Limit");
                 }
             },
