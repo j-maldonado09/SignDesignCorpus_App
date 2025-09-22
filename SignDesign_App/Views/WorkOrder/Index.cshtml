@@ -1063,7 +1063,7 @@
             imageName = null;
 
         if (imageName != null)
-            image = [{name:imageName}];
+            image = imageName.split(';').map(name => name.trim()).filter(name => name).map(name => ({name}));
 
         //$('#left-' + cloneCount).append('<input id="files-' + cloneCount + '" name="files" type="file"/>');
         var uploadId = 'files-sign-' + cloneCount;
@@ -1073,7 +1073,8 @@
             async: {
                 saveUrl: '/WorkOrder/SaveUploadedImage',
                 removeUrl: '/WorkOrder/RemoveUploadedImage',
-                autoUpload: true
+                autoUpload: true,
+                batch: true
             },
             files: image,
             select: function (e) {
@@ -1132,7 +1133,7 @@
             imageInstalledName = null;
 
         if (imageInstalledName != null)
-            imageInstalled = [{ name: imageInstalledName }];
+            imageInstalled = imageName.split(';').map(name => name.trim()).filter(name => name).map(name => ({name}));
 
         //$('#left-' + cloneCount).append('<input id="files-' + cloneCount + '" name="files" type="file"/>');
         $('#sixth-row-right-' + cloneCount).append('<input id="files-installed-' + cloneCount + '" name="filesInstalled" type="file"/>');
@@ -1141,7 +1142,8 @@
             async: {
                 saveUrl: '/WorkOrder/SaveUploadedInstalledImage',
                 removeUrl: '/WorkOrder/RemoveUploadedInstalledImage',
-                autoUpload: true
+                autoUpload: true,
+                batch: true
             },
             files: imageInstalled,
             select: function(e){
@@ -1185,7 +1187,7 @@
             attachmentName = null;
 
         if (attachmentName != null)
-            attachment = [{name:attachmentName}];
+            attachment = attachmentName.split(';').map(name => name.trim()).filter(name => name).map(name => ({name}));
         
         //$('#left-' + cloneCount).append('<input id="files-' + cloneCount + '" name="files" type="file"/>');
         var attachmentId = 'attachments-' + cloneCount;
@@ -1195,7 +1197,8 @@
             async: {
                 saveUrl: '/WorkOrder/SaveUploadedAttachment',
                 removeUrl: '/WorkOrder/RemoveUploadedAttachment',
-                autoUpload: true
+                autoUpload: true,
+                batch: true
             },
             files: attachment,
             select: function(e){
@@ -1242,21 +1245,10 @@
                 type: 'POST',
                 data: { fileNames: fileNames },
                 traditional: true,
-                success: function () { //remove matching file rows              
-                    e.files.forEach(function (file) {
-                        var $fileElement = $(e.sender.wrapper)
-                            .find(".k-file")
-                            .filter(function () {
-                                return $(this).find(".k-file-name").text().trim() === file.name;
-                            });
-                        $fileElement.remove();
+                success: function () {            
+                    e.files.forEach(function(file) {
+                         e.sender.removeFileByUid(file.uid);
                     });
-                    var $uploadElement = $(e.sender.wrapper);                    
-                    if ($uploadElement.find(".k-file").length === 0) {
-                        $uploadElement.addClass("k-upload-empty");
-                        $uploadElement.find('.k-upload-status').remove(); //remove upload status
-                        $uploadElement.find('.k-dropzone-hint').removeClass('k-hidden'); //remove k-hidden class
-                    }
                 }
             });                    
         });
