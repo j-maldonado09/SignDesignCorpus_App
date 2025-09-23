@@ -191,6 +191,8 @@
             isNew = false;
             workOrderId = e.model.get('Id');
 
+             $('h3.text-center').html('REGIONAL SIGN REQUEST <span> # ' + workOrderId + '</span>');
+
             //update text for Update button
     //         if ("@currentUserRole" == "SUPERVISOR" || "@currentUserRole" == "USER") //change to Submit for users and supervisors
     //         {
