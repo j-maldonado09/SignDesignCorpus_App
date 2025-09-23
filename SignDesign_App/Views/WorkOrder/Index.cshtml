@@ -1133,7 +1133,7 @@
             imageInstalledName = null;
 
         if (imageInstalledName != null)
-            imageInstalled = imageName.split(';').map(name => name.trim()).filter(name => name).map(name => ({name}));
+            imageInstalled = imageInstalledName.split(';').map(name => name.trim()).filter(name => name).map(name => ({name}));
 
         //$('#left-' + cloneCount).append('<input id="files-' + cloneCount + '" name="files" type="file"/>');
         $('#sixth-row-right-' + cloneCount).append('<input id="files-installed-' + cloneCount + '" name="filesInstalled" type="file"/>');
@@ -1321,10 +1321,16 @@
         //$('.k-file-name').eq(cloneCount - 1).click(onInstalledImageUploadClick);
         //$('.k-file-name').eq(cloneCount - 1).mouseover(onInstalledImageUploadMouseOver);
         //$('.k-file-name').addClass("link-primary");
-        $('#sixth-row-right-' + cloneCount).children('.k-widget').children('.k-upload-files').children('.k-file').children('.k-file-name-size-wrapper').children('.k-file-name').eq(0).click(onInstalledImageUploadClick);
-        $('#sixth-row-right-' + cloneCount).children('.k-widget').children('.k-upload-files').children('.k-file').children('.k-file-name-size-wrapper').children('.k-file-name').eq(0).mouseover(onInstalledImageUploadMouseOver);
-        $('#sixth-row-right-' + cloneCount).children('.k-widget').children('.k-upload-files').children('.k-file').children('.k-file-name-size-wrapper').children('.k-file-name').addClass("link-primary");
-
+        $('#sixth-row-right-' + cloneCount)
+        .find('.k-widget')
+        .find('.k-upload-files')
+        .find('.k-file')
+        .each(function () {
+            var $fileName = $(this).find('.k-file-name-size-wrapper .k-file-name');
+            $fileName.addClass("link-primary");
+            $fileName.on('click', onInstalledImageUploadClick);
+            $fileName.on('mouseover', onInstalledImageUploadMouseOver);
+        });
     }
 
     // Installed Image Upload Control Click Event ***********************************************************************************************************************
@@ -1351,9 +1357,16 @@
 
     // **************************************************************************************************************************************************
     function onUploadAttachmentSuccessAux() {
-        $('.k-file-name').eq(cloneCount - 1).click(onUploadAttachmentClick);
-        $('.k-file-name').eq(cloneCount - 1).mouseover(onUploadAttachmentMouseOver);
-        $('.k-file-name').addClass("link-primary");
+        $('#third-row-left-' + cloneCount)
+        .find('.k-widget')
+        .find('.k-upload-files')
+        .find('.k-file')
+        .each(function () {
+            var $fileName = $(this).find('.k-file-name-size-wrapper .k-file-name');
+            $fileName.addClass("link-primary");
+            $fileName.on('click', onUploadAttachmentClick);
+            $fileName.on('mouseover', onUploadAttachmentMouseOver);
+        });
     }
 
     // Upload Attachment Control Click Event ************************************************************************************************************
