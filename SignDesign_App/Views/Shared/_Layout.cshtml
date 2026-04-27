@@ -36,13 +36,21 @@
               asp-fallback-test-class="sr-only" asp-fallback-test-property="position" asp-fallback-test-value="absolute" />
         <link rel="stylesheet" href="~/css/site.min.css" asp-append-version="true" />
     </environment>
-	@* <link href="https://cdn.kendostatic.com/2022.1.301/styles/kendo.bootstrap-main.min.css" rel="stylesheet" type="text/css" /> *@
+
+    <!-- Kendo UI styles and scripts --> 
     <link rel="stylesheet" href="~/css/sass_styles.css" />
+    @* <link href="https://cdn.kendostatic.com/2022.1.301/styles/kendo.bootstrap-main.min.css" rel="stylesheet" type="text/css" /> *@
     @* <link rel="stylesheet" href="https://kendo.cdn.telerik.com/themes/8.2.1/default/kendo-theme-material.css" />*@	
     <script src="https://cdn.kendostatic.com/2022.1.301/js/jquery.min.js"></script>
 	<script src="https://cdn.kendostatic.com/2022.1.301/js/jszip.min.js"></script>
 	<script src="https://cdn.kendostatic.com/2022.1.301/js/kendo.all.min.js"></script>
 	<script src="https://cdn.kendostatic.com/2022.1.301/js/kendo.aspnetmvc.min.js"></script>
+
+    <!-- Load the ArcGIS Maps SDK for JavaScript from CDN -->
+    <!-- Load the CSS for the widgets -->
+    <link rel="stylesheet" href="https://js.arcgis.com/5.0/esri/themes/light/main.css" />
+    <script type="module" src="https://js.arcgis.com/5.0/"></script>
+
 </head>
 <body class="k-content">
 

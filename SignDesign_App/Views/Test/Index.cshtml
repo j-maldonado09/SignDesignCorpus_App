@@ -1,18 +1,15 @@
-﻿@using SignDesignCorpus;
-@using SignDesignCorpus.ViewModels;
-@using System.Collections.Generic;
-@*@model IEnumerable<WorkOrderViewModel>*@
-@model SignDesignCorpus.HelperModels.WorkOrderHelperModel
-@addTagHelper *, Kendo.Mvc
-@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+﻿<div style="height:600px;">
+    <arcgis-map id="map"
+                basemap="streets"
+                zoom="4"
+                center="-98.5,29.4"
+                item-id="">
 
-@{IEnumerable<RegionalDistributionCenter> reqFrom = (IEnumerable<RegionalDistributionCenter>)ViewData["regnDistCenters"];}
+        <arcgis-feature-layer id="trailheads"
+                              url="https://services3.arcgis.com/GVgbJbqm8hXASVYi/arcgis/rest/services/Trailheads/FeatureServer/0">
+        </arcgis-feature-layer>
 
-<div> 
-	@* Block for first set of data *@
-
-	<h3 class="text-center">REGIONAL SIGN REQUEST</h3>
-
-	
+    </arcgis-map>
 </div>
-  
+
+<script type="module" src="/js/arcgis-map.js"></script>

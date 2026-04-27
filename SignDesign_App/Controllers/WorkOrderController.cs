@@ -476,6 +476,8 @@ namespace SignDesignCorpusApp.Controllers
         // Saves the sign image that was uploaded with the kendo upload control ***************************************************
         public async Task<ActionResult> SaveUploadedImage(IEnumerable<IFormFile> files)
         {
+            string uniqueFileName = null;
+
             // The Name attribute of the Kendo Upload component is "files" and it must match the parameter name of this action.
             if (files != null)
             {
@@ -485,8 +487,15 @@ namespace SignDesignCorpusApp.Controllers
 
                     // Some browsers send file names with full path.
                     // We are only interested in the file name.
-                    var fileName = Path.GetFileName(fileContent.FileName.ToString().Trim('"'));
-                    var physicalPath = Path.Combine(_webHostEnvironment.WebRootPath, "images", "signs", fileName);
+                    var originalFileName = Path.GetFileName(fileContent.FileName.ToString().Trim('"'));
+
+                    // Generate short unique suffix and form the file name
+                    var uid = Guid.NewGuid().ToString("N").Substring(0, 8);
+                    var name = Path.GetFileNameWithoutExtension(originalFileName);
+                    var ext = Path.GetExtension(originalFileName);
+                    uniqueFileName = $"{name}_{uid}{ext}";
+
+                    var physicalPath = Path.Combine(_webHostEnvironment.WebRootPath, "images", "signs", uniqueFileName);
 
                     using (var fileStream = new FileStream(physicalPath, FileMode.Create))
                     {
@@ -495,8 +504,8 @@ namespace SignDesignCorpusApp.Controllers
                 }
             }
 
-            // Return an empty string to signify success.
-            return Content("");
+            // Return the unique file name to the client.
+            return Json(new { fileName = uniqueFileName });
         }
 
         // Removes the sign image that was uploaded with the kendo upload control *************************************************
@@ -578,6 +587,8 @@ namespace SignDesignCorpusApp.Controllers
         // Saves the attachment that was uploaded with the kendo upload control *****************************************************************
         public async Task<ActionResult> SaveUploadedAttachment(IEnumerable<IFormFile> attachments)
         {
+            string uniqueFileName = null;
+
             // The Name attribute of the Kendo Upload component is "attachments" and it must match the parameter name of this action.
             if (attachments != null)
             {
@@ -587,8 +598,15 @@ namespace SignDesignCorpusApp.Controllers
 
                     // Some browsers send file names with full path.
                     // We are only interested in the file name.
-                    var fileName = Path.GetFileName(fileContent.FileName.ToString().Trim('"'));
-                    var physicalPath = Path.Combine(_webHostEnvironment.WebRootPath, "attachments", fileName);
+                    var originalFileName = Path.GetFileName(fileContent.FileName.ToString().Trim('"'));
+
+                    // Generate a short unique suffix and form the file name
+                    var uid = Guid.NewGuid().ToString("N").Substring(0, 8);
+                    var name = Path.GetFileNameWithoutExtension(originalFileName);
+                    var ext = Path.GetExtension(originalFileName);
+                    uniqueFileName = $"{name}_{uid}{ext}";
+
+                    var physicalPath = Path.Combine(_webHostEnvironment.WebRootPath, "attachments", uniqueFileName);
 
                     using (var fileStream = new FileStream(physicalPath, FileMode.Create))
                     {
@@ -597,8 +615,8 @@ namespace SignDesignCorpusApp.Controllers
                 }
             }
 
-            // Return an empty string to signify success.
-            return Content("");
+            // Return the unique file name to the client.
+            return Json(new { fileName = uniqueFileName });
         }
 
         // Removes the attachment that was uploaded with the kendo upload control ****************************************************************
@@ -624,6 +642,52 @@ namespace SignDesignCorpusApp.Controllers
 
             // Return an empty string to signify success.
             return Content("");
+        }
+
+        public IActionResult ViewAttachment(string fileName)
+        {
+            var path = Path.Combine(_webHostEnvironment.WebRootPath, "attachments", fileName);
+
+            if (!System.IO.File.Exists(path))
+                return NotFound();
+
+            var mime = GetMimeType(fileName);
+
+            // Inline so browser decides open vs download
+            Response.Headers["Content-Disposition"] = $"inline; filename=\"{fileName}\"";
+
+            return PhysicalFile(path, mime);
+        }
+
+        private static string GetMimeType(string fileName)
+        {
+            var ext = Path.GetExtension(fileName).ToLowerInvariant();
+
+            return ext switch
+            {
+                ".pdf" => "application/pdf",
+                ".png" => "image/png",
+                ".jpg" => "image/jpeg",
+                ".jpeg" => "image/jpeg",
+                ".gif" => "image/gif",
+                ".bmp" => "image/bmp",
+                ".svg" => "image/svg+xml",
+
+                ".txt" => "text/plain",
+                ".csv" => "text/csv",
+
+                ".doc" => "application/msword",
+                ".docx" => "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                ".xls" => "application/vnd.ms-excel",
+                ".xlsx" => "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                ".ppt" => "application/vnd.ms-powerpoint",
+                ".pptx" => "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+
+                ".zip" => "application/zip",
+                ".rar" => "application/vnd.rar",
+
+                _ => "application/octet-stream" // fallback
+            };
         }
     }
 }

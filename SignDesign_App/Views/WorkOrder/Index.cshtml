@@ -94,6 +94,7 @@
     var cloneCountMax = 10;         // sets the updated maximum value of sign segments (this increases when sign segments are deleted)
     const cloneCountLimit = 10;     // limit of sign containers accepted by the application
     var workOrderId = 0;
+    var workOrderNumber = 0;
     var isNew;
     var closePopup = true;
     var currentWorkOrderStatus = '';    // current work order status used when editing an existing work order
@@ -173,6 +174,24 @@
     function onEdit(e) {
         var editWindow = this.editable.element.data("kendoWindow");
         editWindow.setOptions({ title: "", height: "90%", width: "90%", resizable: false });
+
+         // Force styling in case CSS load order is different in prod
+        $("<style>")
+            .prop("type", "text/css")
+            .html(`
+                .k-window-titlebar .k-window-actions .k-window-action {
+                    display: inline-flex !important;
+                    background-color: #d9534f !important;
+                }
+                .k-window-titlebar .k-window-actions .k-window-action .k-icon,
+                .k-window-titlebar .k-window-actions .k-window-action .k-button-icon {
+                    color: #ffffff !important;
+                    fill: #ffffff !important;
+                }
+            `)
+            .appendTo("head");
+
+
         editWindow.center();
         //editWindow.bind("close", onEditWindowClose);
         cloneCount = 0;
@@ -190,6 +209,8 @@
         if (!e.model.isNew()) {
             isNew = false;
             workOrderId = e.model.get('Id');
+            workOrderNumber = e.model.get('MaterialRequestedByNumber') + "-" + e.model.get('Id');
+            editWindow.setOptions({title: "EDITING WORK ORDER #" + workOrderNumber});
 
             //update text for Update button
     //         if ("@currentUserRole" == "SUPERVISOR" || "@currentUserRole" == "USER") //change to Submit for users and supervisors
@@ -218,6 +239,7 @@
         }
         else {
             isNew = true;
+            editWindow.setOptions({title: "CREATING NEW WORK ORDER"});
             currentWorkOrderStatus = ''; //reset current work order status when a new work order is opened
             addSegment(null, null, null);
 
@@ -663,7 +685,7 @@
 
             // Show the area engineer approval label when openning an exising record
             designationLabelId = 'sign-designation-label-' + i;
-            if (controlVal == 'W12-2' || controlVal == 'W12-2A')
+            if (controlVal == 'W12-2' || controlVal == 'W12-2A' || controlVal == 'W12-2a')
                 $('#' + designationLabelId).show();
 
             controlVal = jsonResult[0].Items[i - 1].Size;
@@ -998,7 +1020,7 @@
             value: 1,
             format: 'n0',
             min: 1,
-            max: 10,
+            max: 50,
         });
     }
 
@@ -1025,7 +1047,7 @@
                     designationLabelId = 'sign-designation-label-' + designationTextAreaId; 
                     designationTextAreaValue = $('#' + id).val();
 
-                    if (designationTextAreaValue == 'W12-2' || designationTextAreaValue == 'W12-2A')
+                    if (designationTextAreaValue == 'W12-2' || designationTextAreaValue == 'W12-2A' || designationTextAreaValue == 'W12-2a')
                         $('#' + designationLabelId).show();
                     else
                         $('#' + designationLabelId).hide();
@@ -1093,9 +1115,23 @@
                     fnShowMessage("Only PNG, JPG, and JPEG are allowed", "Invalid file type");
                 }
             },
-            success: function(e){
-                isReplacingFile = false; //reset flag after successful upload
+            success: function(e) {
+                isReplacingFile = false;
                 onUploadSuccess(e);
+
+                if (e.operation === "upload" && e.response && e.response.fileName) {
+
+                    var newName = e.response.fileName;
+
+                    // Scope to THIS upload widget only
+                    var container = $('#' + uploadId).closest('.form-group');
+
+                    var fileNameElement = container.find('.k-upload-files .k-file .k-file-name').eq(0);
+
+                    // Update visible filename
+                    fileNameElement.text(newName).attr("title", newName).data("fileName", newName).addClass("link-primary")
+                                   .click(onUploadClick).mouseover(onUploadMouseOver);
+                }
             },
             remove: function (e) {
                 onFileRemoval(e, isReplacingFile);
@@ -1182,8 +1218,22 @@
                 isReplacingFile = true; //reset flag on file selection
             },
             success: function(e){
-                isReplacingFile = false; //reset flag after successful upload
+                isReplacingFile = false;
                 onUploadAttachmentSuccess(e);
+
+                if (e.operation === "upload" && e.response && e.response.fileName) {
+
+                    var newName = e.response.fileName;
+
+                    // Scope to THIS upload widget only
+                    var container = $('#' + attachmentId).closest('.form-group');
+
+                    var fileNameElement = container.find('.k-upload-files .k-file .k-file-name').eq(0);
+
+                    // Update visible filename
+                    fileNameElement.text(newName).attr("title", newName).data("fileName", newName).addClass("link-primary")
+                                   .click(onUploadAttachmentClick).mouseover(onUploadAttachmentMouseOver);
+                }
             },
             remove: function (e) {
                 onFileRemoval(e, isReplacingFile);
@@ -1259,7 +1309,8 @@
 
     // Upload Control Click Event ***********************************************************************************************************************
     function onUploadClick() {
-        var imageName = $('.k-file-name').eq($('.k-file-name').index(this)).attr('title');
+        //var imageName = $('.k-file-name').eq($('.k-file-name').index(this)).attr('title');
+        var imageName = $(this).data("fileName") || $(this).attr("title");
         //var imageName = $('#third-row-left-' + cloneCount).find('.k-widget').find('.k-upload-files').find('.k-file').find('.k-file-name-size-wrapper').find('.k-file-name').eq($('#third-row-left-' + cloneCount).find('.k-widget').find('.k-upload-files').find('.k-file').find('.k-file-name-size-wrapper').find('.k-file-name').index(this)).attr('title');
         var imageWindow = $('#imageWindow').data('kendoWindow');
         imageWindow.content("<img class='img-fluid' src='/images/signs/" + imageName + "' alt='Image'>");
@@ -1315,18 +1366,21 @@
 
     // **************************************************************************************************************************************************
     function onUploadAttachmentSuccessAux() {
-        $('.k-file-name').eq(cloneCount - 1).click(onUploadAttachmentClick);
-        $('.k-file-name').eq(cloneCount - 1).mouseover(onUploadAttachmentMouseOver);
-        $('.k-file-name').addClass("link-primary");
+        $('#third-row-right-' + cloneCount).find('.k-widget').find('.k-upload-files').find('.k-file').find('.k-file-name-size-wrapper').find('.k-file-name').eq(0).click(onUploadAttachmentClick);
+        $('#third-row-right-' + cloneCount).find('.k-widget').find('.k-upload-files').find('.k-file').find('.k-file-name-size-wrapper').find('.k-file-name').eq(0).mouseover(onUploadAttachmentMouseOver);
+        $('#third-row-right-' + cloneCount).find('.k-widget').find('.k-upload-files').find('.k-file').find('.k-file-name-size-wrapper').find('.k-file-name').addClass("link-primary");
     }
 
     // Upload Attachment Control Click Event ************************************************************************************************************
     function onUploadAttachmentClick() {
-        // var attachmentName = $('.k-file-name').eq($('.k-file-name').index(this)).attr('title');
-        // var attachmentWindow = $('#imageWindow').data('kendoWindow');
-        // imageWindow.content("<img class='img-fluid' src='/images/signs/" + imageName + "' alt='Image'>");
-        // imageWindow.center();
-        // imageWindow.open();
+        //var fileName = $('.k-file-name').eq($('.k-file-name').index(this)).attr('title');
+        var fileName = $(this).data("fileName") || $(this).attr("title");
+
+        if (!fileName)
+            return;
+
+        var url = "/WorkOrder/ViewAttachment?fileName=" + encodeURIComponent(fileName);
+        window.open(url, "_blank");
     }
 
     // Upload Attachment Control Mouse Over Event *******************************************************************************************************
@@ -1489,6 +1543,19 @@
         });
     }
 
+    // Function to get the real uploaded file name from the upload control *****************************************************************************
+    function getRealUploadedFileName(uploadId) {
+        var container = $('#' + uploadId).closest('.form-group');
+
+        var fileNameElement = container
+            .find('.k-upload-files .k-file .k-file-name')
+            .eq(0);
+
+        return fileNameElement.data("fileName")
+            || fileNameElement.attr("title")
+            || null;
+    }
+
     // ************************************************************************************************************************************************
     function GetWorkOrderData() {
         var files = [];
@@ -1532,15 +1599,16 @@
 
         for (var i = 1; i <= cloneCount; i++) {
             if ($('#sign-form-' + i).length > 0) {
-                files = $("#files-sign-" + i).data("kendoUpload").getFiles();
+                //------------------------------------------------------------
+                //files = $("#files-sign-" + i).data("kendoUpload").getFiles();
                 filesInstalled = $("#files-installed-" + i).data("kendoUpload").getFiles();
-                attachments = $("#attachments-" + i).data("kendoUpload").getFiles();
+                //attachments = $("#attachments-" + i).data("kendoUpload").getFiles();
 
                 // if length = 0, then the sign image (upload control) was not edited, the sign image is the same as when the record was loaded
-                if (files.length == 0)
-                    imageName = $("#files-sign-" + i).data("kendoUpload").files[0].name;
-                else
-                    imageName = files[0].name;
+                // if (files.length == 0)
+                //     imageName = $("#files-sign-" + i).data("kendoUpload").files[0].name;
+                // else
+                //     imageName = files[0].name;
 
                 // if length = 0, then the installed sign image (upload control) was not edited, the installed sign image is the same as when the record was loaded
                 if (filesInstalled.length == 0)
@@ -1549,11 +1617,22 @@
                     imageInstalledName = filesInstalled[0].name;
 
                 // if length = 0, then the attachment (upload control) was not edited, the attachment is the same as when the record was loaded
-                if (attachments.length == 0)
-                    attachmentName = null;
-                else
-                    attachmentName = attachments[0].name;
-                
+                // if (attachments.length == 0)
+                //     attachmentName = null;
+                // else
+                //     attachmentName = attachments[0].name;
+                //-------------------------------------------------
+
+
+                // Once installed image is also updated, remove the whole block above this and uncomment the installed image vars
+                 var imageUploadId = "files-sign-" + i;
+                //var installedUploadId = "files-installed-" + i;
+                var attachmentUploadId = "attachments-" + i;
+
+                var imageName = getRealUploadedFileName(imageUploadId);
+                //var imageInstalledName = getRealUploadedFileName(installedUploadId);
+                var attachmentName = getRealUploadedFileName(attachmentUploadId);
+
                 workOrder.Items.push({
                     NIGP: $("#nigp-" + i).val(),
                     //RDC: $("#rdc-" + i).data("kendoCheckBox").check(),

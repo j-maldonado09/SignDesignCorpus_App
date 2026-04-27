@@ -14,7 +14,17 @@ namespace SignDesignCorpusApp.Controllers
 {
     public class TestController : Controller
     {
-        
+        // Constructor **************************************************************
+        public TestController()
+        {
+        }
+
+        // Index ********************************************************************
+        public IActionResult Index()
+        {
+            return View();
+
+        }
     }
 }
 

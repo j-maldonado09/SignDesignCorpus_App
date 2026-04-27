@@ -401,20 +401,11 @@ namespace SignDesign_App.Services
                                     .Text(text =>
                                     {
                                         text.Span("Special Instructions\n").FontSize(12);
-                                        text.Span(workOrder.Items[i].SpecialInstructions + "\nLocation: ("
-                                                  + workOrder.Items[i].Latitude + ", "
-                                                  + workOrder.Items[i].Longitude + ").").FontSize(11);
+                                        text.Span(workOrder.Items[i].SpecialInstructions).FontSize(11);
+                                        //text.Span(workOrder.Items[i].SpecialInstructions + "\nLocation: ("
+                                        //          + workOrder.Items[i].Latitude + ", "
+                                        //          + workOrder.Items[i].Longitude + ").").FontSize(11);
                                     });
-                                //col.Item()
-                                //    .Border(narrowBorder)
-                                //    .PaddingHorizontal(2)
-                                //    .Text("Location")
-                                //    .FontSize(12);
-                                //col.Item()
-                                //    .Border(narrowBorder)
-                                //    .Background(fieldColor)
-                                //    .Text("")
-                                //    .FontSize(12);
                             }
                         });
 
