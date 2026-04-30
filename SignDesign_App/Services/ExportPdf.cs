@@ -394,7 +394,7 @@ namespace SignDesign_App.Services
                                         });
                                 });
                                 col.Item()
-                                    .Height(70)
+                                    .MinHeight(70)
                                     .Border(narrowBorder)
                                     .PaddingHorizontal(2)
                                     .Background(fieldColor)
