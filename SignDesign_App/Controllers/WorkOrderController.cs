@@ -137,6 +137,8 @@ namespace SignDesignCorpusApp.Controllers
                 workOrders = workOrders.Where(x => x.MaterialRequestedById == currentUser.MaintenanceSectionId);
             else if(currentUserRole == "ENGINEER") //only show work orders that are in AREA ENGINEER status
                 workOrders = workOrders.Where(x => x.Status == "AREA ENGINEER");
+            else if(currentUserRole == "ADMIN") //show work order except the rejected ones
+                workOrders = workOrders.Where(x => x.Status != "REJECTED BY SUPERVISOR" && x.Status != "REJECTED BY DISTRICT/ENGINEER");
             DataSourceResult dsResult = workOrders.ToDataSourceResult(request);            
             return Json(dsResult);
         }
@@ -336,11 +338,13 @@ namespace SignDesignCorpusApp.Controllers
             string currentUserRole = _userManager.GetRolesAsync(currentUser).Result[0];
             var htmlSubject = "Sign Request";
 
-            if (status == "CREATED" || status == "APPROVED")
+            if (status == "CREATED" || status == "APPROVED" || status == "REJECTED BY SUPERVISOR" || status == "REJECTED BY DISTRICT/ENGINEER")
             {
-                applicationUsers = GetUsersInRole("SUPERVISOR").Result.ToList();
+                applicationUsers = status == "REJECTED BY SUPERVISOR" 
+                                ? GetUsersInRole("USER").Result.ToList() 
+                                : GetUsersInRole("SUPERVISOR").Result.ToList();
                 var maintenanceSectionId = currentUser.MaintenanceSectionId;
-                if (currentUserRole == "ADMIN")
+                if (currentUserRole == "ADMIN" || currentUserRole == "ENGINEER")
                     maintenanceSectionId = workOrder.MaterialRequestedById;
                 applicationUsers = applicationUsers
                         .Where(user => user.MaintenanceSectionId == maintenanceSectionId)
