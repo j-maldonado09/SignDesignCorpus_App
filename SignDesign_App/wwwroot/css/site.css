@@ -17,6 +17,8 @@ body {
 /* #endregion */
 
 /* ------------------------------------------------------------------------------------------ */
+/* Start custom css                                                                           */
+/* ------------------------------------------------------------------------------------------ */
 .center {
     display: block;
     margin-left: auto;
@@ -30,48 +32,68 @@ body {
     width: 300px;
 }
 
-.status-css-draft {
-    background-color: #6c757d;
-    color: white;
-    margin: auto;
+/* Base badge styling */
+.k-badge {
+    color: white !important;
+    font-weight: 600;
+    padding: 4px 10px !important;
+    border-radius: 6px !important;
 }
 
-.status-css-created {
-    background-color: #dc5765;
-    color: white;
-    margin: auto;
+/* Status colors */
+.status-draft {
+    background-color: #6C757D !important;
 }
 
-.status-css-requested {
-    background-color: #dcaf57;
-    color: white;
-    margin: auto;
+.status-created {
+    background-color: #E56140 !important;
 }
 
-.status-css-engineer {
-    background-color: #ff7414;
-    color: white;
-    text-align: center;
+.status-requested {
+    background-color: #DCAF57 !important;
 }
 
-.status-css-approved {
-    background-color: #57dc7f;
-    color: white;
-    text-align: center;
+.status-engineer {
+    background-color: #B914FF !important;
 }
 
-.status-css-received {
-    background-color: #4a4a4a;
-    color: white;
-    text-align: center;
+.status-approved {
+    background-color: #4BAD64 !important;
 }
 
-.status-css-installed {
-    background-color: #222222;
-    color: white;
-    text-align: center;
+.status-rejected {
+    background-color: #B00000 !important;
 }
 
+.status-received {
+    background-color: #012C80 !important;
+}
+
+.status-installed {
+    background-color: #222222 !important;
+}
+
+/* Legend container */
+.status-legend {
+    margin-top: 12px;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 6px 12px;
+    font-size: 12px;
+    color: #333;
+}
+
+/* Small color square */
+.legend-box {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    margin-right: 6px;
+    vertical-align: middle;
+}
+
+/* Red circle for hold column in main grid */
 .red-circle {
     display: inline-block;
     width: 10px;
@@ -82,6 +104,19 @@ body {
     vertical-align: middle;
 }
 
+/* Black header background */
+.k-grid .k-grid-header {
+    background-color: #000 !important;
+}
+
+/* White text for header titles */
+.k-grid .k-grid-header .k-link,
+.k-grid .k-grid-header .k-column-title {
+    color: #fff !important;
+}
+
+/* ------------------------------------------------------------------------------------------ */
+/* End custom css                                                                           */
 /* ------------------------------------------------------------------------------------------ */
 
 /* #region custom Kendo UI styles */

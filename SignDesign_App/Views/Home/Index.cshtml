@@ -9,16 +9,22 @@
 
 <div class="p-4">
     <br />
-    <h3 style="text-align:center">Corpus Christi</h3>
-    <h3 style="text-align:center">Sign Design Management</h3>
+    <h2 style="text-align:center">CORPUS CHRISTI DISTRICT</h2>
+    <h4 style="text-align:center">SIGN MANAGEMENT</h4>
     <br/>
-    <img class="center" src="~/Images/txdotBanner.png" width=70% />
+    <br />
+    <img class="center" src="~/Images/txdotBanner4.png" width=70% />
+    <br />
     <br />
     <br />
     @if (!SignInManager.IsSignedIn(User))
     {
         <form method="get" asp-action="Login" asp-controller="Identity">
-            <button type="submit" class="btn btn-dark center-button-css-signin">Enter</button>
+            <button type="submit" class="btn btn-dark center-button-css-signin">ENTER</button>
         </form>
+    }
+    @if (SignInManager.IsSignedIn(User))
+    {
+        <h2 style="text-align:center">WELCOME!</h2>
     }
 </div>

@@ -136,9 +136,9 @@ namespace SignDesignCorpusApp.Controllers
             if (currentUserRole == "USER" || currentUserRole == "SUPERVISOR")
                 workOrders = workOrders.Where(x => x.MaterialRequestedById == currentUser.MaintenanceSectionId);
             else if(currentUserRole == "ENGINEER") //only show work orders that are in AREA ENGINEER status
-                workOrders = workOrders.Where(x => x.Status == "AREA ENGINEER");
-            else if(currentUserRole == "ADMIN") //show work order except the rejected ones
-                workOrders = workOrders.Where(x => x.Status != "REJECTED BY SUPERVISOR" && x.Status != "REJECTED BY DISTRICT/ENGINEER");
+                workOrders = workOrders.Where(x => x.Status == "AREA ENGINEER" || x.Status == "REJECTED BY ENGINEER");
+            else if(currentUserRole == "ADMIN") //show work order except the drafts
+                workOrders = workOrders.Where(x => x.Status != "DRAFT");
             DataSourceResult dsResult = workOrders.ToDataSourceResult(request);            
             return Json(dsResult);
         }
@@ -338,7 +338,7 @@ namespace SignDesignCorpusApp.Controllers
             string currentUserRole = _userManager.GetRolesAsync(currentUser).Result[0];
             var htmlSubject = "Sign Request";
 
-            if (status == "CREATED" || status == "APPROVED" || status == "REJECTED BY SUPERVISOR" || status == "REJECTED BY DISTRICT/ENGINEER")
+            if (status == "CREATED" || status == "APPROVED" || status == "REJECTED BY SUPERVISOR" || status == "REJECTED BY DISTRICT" || status == "REJECTED BY ENGINEER")
             {
                 applicationUsers = status == "REJECTED BY SUPERVISOR" 
                                 ? GetUsersInRole("USER").Result.ToList() 
@@ -359,6 +359,7 @@ namespace SignDesignCorpusApp.Controllers
             else if(status == "REQUESTED")
             {
                 usersList = "CRP_Sign_Design@txdot.gov";
+                //usersList = "jorgem_93@hotmail.com";
                 TextInfo textInfo = CultureInfo.CurrentCulture.TextInfo;
                 string maintenanceSectionName = textInfo.ToTitleCase(GetMaintenanceSectionName(currentUser.MaintenanceSectionId).ToLower());
                 htmlSubject = htmlSubject + " from " + maintenanceSectionName;

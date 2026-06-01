@@ -12,10 +12,11 @@
 }
 
 <h1>
-	Work Orders
+	WORK ORDERS DASHBOARD
 </h1>
 
-<kendo-grid name="workOrderGrid" on-edit="onEdit" on-cancel="onPopupClose" on-data-bound="onWorkOrderDataBound" height="750">
+@* Work orders grid ******************************************************************************************************************** *@
+<kendo-grid name="workOrderGrid" on-edit="onEdit" on-cancel="onPopupClose" on-data-bound="onWorkOrderDataBound" height="720">
     <datasource type="DataSourceTagHelperType.Ajax" page-size="50" server-operation="true" on-error="fnShowError">
         <transport>
             @*<create url="WorkOrder/Create" />*@
@@ -28,8 +29,6 @@
                 <fields>
                     <field name="Id" type="number" editable="false"></field>
                     <field name="Number" type="String"></field>
-                    @* <field name="MaterialRequestedFromId" type="number" editable="false"></field>
-                    <field name="MaterialRequestedFromName" type="String"></field> *@
                     <field name="MaterialRequestedById" type="number" editable="false"></field>
                     <field name="MaterialRequestedByName" type="String"></field>
                     <field name="Status" type="String"></field>
@@ -54,15 +53,17 @@
     <columns>
         <column field="Id" title="Id" hidden=true/>
         @*<column field="Number" title="Number" />*@
-        <column field="Number" template="#=template(data)#" title="Number" width="180"/>
+        <column field="Number" template="#=template(data)#" title="WORK ORDER #" width="180"/>
         @* <column field="MaterialRequestedFromId" title="Requested From" hidden=true/>
         <column field="MaterialRequestedFromName" title="Requested From" width="200"/> *@
-        <column field="MaterialRequestedById" title="Requested By" hidden=true/>
-        <column field="MaterialRequestedByName" title="Requested By" />
-        <column field="Status" title="Status" width="180"/>
+        <column field="MaterialRequestedById" title="MAINTENANCE SECTION" hidden=true/>
+        <column field="MaterialRequestedByName" title="MAINTENANCE SECTION" />
+        @* <column field="Status" title="Status" width="180"/> *@
+        <column field="Status" title="STATUS" width="190" template="#= statusBadge(Status) #" />
+
         @* <column field="IsHold" title="Hold" width="140" /> *@
-        <column field="IsHold" template="#=holdTemplate(data)#" title="Hold" width="120" />
-        <column field="StatusDate" title="Date" format="{0:MM/dd/yyyy}" width="180"/>
+        <column field="IsHold" template="#=holdTemplate(data)#" title="HOLD" width="120" />
+        <column field="StatusDate" title="LAST UPDATE" format="{0:MM/dd/yyyy}" width="180"/>
         <column width="110">
             <commands>
                 <column-command text=" " name="edit"></column-command>
@@ -71,6 +72,19 @@
         </column>
     </columns>
 </kendo-grid>
+
+@* Status legend *@
+<div class="status-legend">
+    <div><span class="legend-box status-draft"></span> Created by tech - not submitted</div>
+    <div><span class="legend-box status-created"></span> Submitted to supervisor</div>
+    <div><span class="legend-box status-requested"></span> Sent to district</div>
+    <div><span class="legend-box status-engineer"></span> Needs engineer approval</div>
+    <div><span class="legend-box status-approved"></span> Approved by district</div>
+    <div><span class="legend-box status-rejected"></span> Rejected – needs revision</div>
+    <div><span class="legend-box status-received"></span> Sign received by maint. section</div>
+    <div><span class="legend-box status-installed"></span> Sign installed</div>
+</div>
+
 
 @* Dialog used to display messages (success, error) when performing CRUD operations on work order records *@
 <div id="messageDialog">
@@ -110,7 +124,7 @@
         return `<div> ${ data.MaterialRequestedByNumber}-${ data.Id} <div/>`
     }
 
-    // Set the hold template when the IsHold property is set to true *************************************************************
+    // Set the hold template when the IsHold property is set to true *****************************************************************************
     function holdTemplate(data) {
         var value = data.IsHold;
 
@@ -127,52 +141,52 @@
         grid.table.find("tr").each(function () {
             var dataItem = grid.dataItem(this);
 
-            $("td:contains('DRAFT')").addClass("status-css-draft");
-            $("td:contains('CREATED')").addClass("status-css-created");
-            $("td:contains('REQUESTED')").addClass("status-css-requested");
-            $("td:contains('AREA ENGINEER')").addClass("status-css-engineer");
-            $("td:contains('APPROVED')").addClass("status-css-approved");
-            $("td:contains('REJECTED BY DISTRICT/ENGINEER')").addClass("status-css-rejected");
-            $("td:contains('REJECTED BY SUPERVISOR')").addClass("status-css-rejected");
-            $("td:contains('RECEIVED')").addClass("status-css-received");
-            $("td:contains('INSTALLED')").addClass("status-css-installed");
-
-            // Check if edit button will be disabled
-            // Column 6 is for status and column 8 is for edit and delete buttons
-            if (this.cells.item(4).innerHTML == "CREATED") {
+            // Check if edit and delete buttons will be disabled
+            // Column index 4 is for status and column 7 is for edit/delete buttons 
+            // Index starts from 0 based on the active columns in grid definition
+            if (this.cells.item(4).innerText == "CREATED") {
                 if ("@currentUserRole" == "ENGINEER" || "@currentUserRole" == "ADMIN" || "@currentUserRole" == "USER")
                     this.cells.item(7).getElementsByClassName("k-grid-edit")[0].setAttribute("disabled", true);
                 if ("@currentUserRole" == "ADMIN")
                     this.cells.item(7).getElementsByClassName("k-grid-delete")[0].setAttribute("disabled", true);
             }
-            else if (this.cells.item(4).innerHTML == "AREA ENGINEER") {
+            else if (this.cells.item(4).innerText == "AREA ENGINEER") {
                 if ("@currentUserRole" == "USER" || "@currentUserRole" == "ADMIN" || "@currentUserRole" == "SUPERVISOR") {
                     this.cells.item(7).getElementsByClassName("k-grid-edit")[0].setAttribute("disabled", true);
                     this.cells.item(7).getElementsByClassName("k-grid-delete")[0].setAttribute("disabled", true);
                 }
             }
-            else if (this.cells.item(4).innerHTML == "REQUESTED") {
+            else if (this.cells.item(4).innerText == "REQUESTED") {
                 if ("@currentUserRole" == "USER" || "@currentUserRole" == "SUPERVISOR" || "@currentUserRole" == "ENGINEER")
                     this.cells.item(7).getElementsByClassName("k-grid-edit")[0].setAttribute("disabled", true);
                 if ("@currentUserRole" == "SUPERVISOR")
                         this.cells.item(7).getElementsByClassName("k-grid-delete")[0].setAttribute("disabled", true);
             }
-            else if (this.cells.item(4).innerHTML == "APPROVED" || this.cells.item(4).innerHTML == "RECEIVED" || this.cells.item(4).innerHTML == "INSTALLED") {
+            else if (this.cells.item(4).innerText == "APPROVED" || this.cells.item(4).innerText == "RECEIVED" || this.cells.item(4).innerText == "INSTALLED") {
                 if ("@currentUserRole" == "ENGINEER")
                     this.cells.item(7).getElementsByClassName("k-grid-edit")[0].setAttribute("disabled", true);
-                if ("@currentUserRole" == "USER" || "@currentUserRole" == "SUPERVISOR" || "@currentUserRole" == "ENGINEER")
+                if ("@currentUserRole" == "SUPERVISOR" || "@currentUserRole" == "ENGINEER")
                     this.cells.item(7).getElementsByClassName("k-grid-delete")[0].setAttribute("disabled", true);
             }
-            else if (this.cells.item(4).innerHTML == "REJECTED BY SUPERVISOR") { //only users can edit if rejected by supervisor
-                if ("@currentUserRole" == "SUPERVISOR")
+            else if (this.cells.item(4).innerText == "REJECTED BY SUPERVISOR") {
+                if ("@currentUserRole" == "SUPERVISOR" || "@currentUserRole" == "ADMIN" || "@currentUserRole" == "ENGINEER")
                 {
 					this.cells.item(7).getElementsByClassName("k-grid-delete")[0].setAttribute("disabled", true);
                     this.cells.item(7).getElementsByClassName("k-grid-edit")[0].setAttribute("disabled", true);
                 }                                   
             }
-            else if (this.cells.item(4).innerHTML == "REJECTED BY DISTRICT/ENGINEER") { //only supervisors can edit if rejected by district/area engineer
-                if ("@currentUserRole" == "USER")
+            else if (this.cells.item(4).innerText == "REJECTED BY DISTRICT" || this.cells.item(4).innerText == "REJECTED BY ENGINEER") {
+                if ("@currentUserRole" == "USER" || "@currentUserRole" == "ADMIN" || "@currentUserRole" == "ENGINEER")
                     this.cells.item(7).getElementsByClassName("k-grid-edit")[0].setAttribute("disabled", true);
+                if ("@currentUserRole" == "ADMIN")
+                    this.cells.item(7).getElementsByClassName("k-grid-delete")[0].setAttribute("disabled", true);
+            }
+
+            if (this.cells.item(4).innerText == "DRAFT") {
+                if ("@currentUserRole" == "SUPERVISOR" || "@currentUserRole" == "ADMIN") {
+                    this.cells.item(7).getElementsByClassName("k-grid-edit")[0].setAttribute("disabled", true);
+                    this.cells.item(7).getElementsByClassName("k-grid-delete")[0].setAttribute("disabled", true);
+                }
             }
 
             if ("@currentUserRole" == "USER" || "@currentUserRole" == "ENGINEER")
@@ -180,6 +194,34 @@
 
             kendo.bind($(this), dataItem);
         });
+    }
+
+    // function applied to the template of the status column of the grid ***********************************************************************
+    function statusBadge(status) {
+        switch (status) {
+            case "DRAFT":
+                return '<span class="k-badge k-badge-solid k-badge-md status-draft">DRAFT</span>';
+            case "CREATED":
+                return '<span class="k-badge k-badge-solid k-badge-md status-created">CREATED</span>';
+            case "REQUESTED":
+                return '<span class="k-badge k-badge-solid k-badge-md status-requested">REQUESTED</span>';
+            case "AREA ENGINEER":
+                return '<span class="k-badge k-badge-solid k-badge-md status-engineer">AREA ENGINEER</span>';
+            case "APPROVED":
+                return '<span class="k-badge k-badge-solid k-badge-md status-approved">APPROVED</span>';
+            case "REJECTED BY DISTRICT":
+                return '<span class="k-badge k-badge-solid k-badge-md status-rejected">REJECTED BY DISTRICT</span>';
+            case "REJECTED BY ENGINEER":
+                return '<span class="k-badge k-badge-solid k-badge-md status-rejected">REJECTED BY ENGINEER</span>';
+            case "REJECTED BY SUPERVISOR":
+                return '<span class="k-badge k-badge-solid k-badge-md status-rejected">REJECTED BY SUPERVISOR</span>';
+            case "RECEIVED":
+                return '<span class="k-badge k-badge-solid k-badge-md status-received">RECEIVED</span>';
+            case "INSTALLED":
+                return '<span class="k-badge k-badge-solid k-badge-md status-installed">INSTALLED</span>';
+            default:
+                return status;
+        }
     }
 
     // Function that opens the popup window to create or edit the work orders *********************************************************************************
@@ -203,35 +245,18 @@
             `)
             .appendTo("head");
 
-
         editWindow.center();
-        //editWindow.bind("close", onEditWindowClose);
         cloneCount = 0;
         cloneCountMax = cloneCountLimit;
 
-        //$(".k-grid-update").off().on("click", SaveOrUpdate);
         $(".k-grid-update").hide();
         $(".k-grid-cancel").hide();
-        //$(".k-button.k-button-md.k-rounded-md.k-button-flat.k-button-flat-base.k-icon-button.k-window-action").removeClass("k-button-flat k-button-flat-base").addClass("k-button-solid k-button-solid-error");
-        //$(".k-grid-cancel").on("click", function (e) {
-        //    closePopup = true;
-        //    alert("close button: " + closePopup);
-        //});
 
         if (!e.model.isNew()) {
             isNew = false;
             workOrderId = e.model.get('Id');
             workOrderNumber = e.model.get('MaterialRequestedByNumber') + "-" + e.model.get('Id');
             editWindow.setOptions({title: "EDITING WORK ORDER #" + workOrderNumber});
-
-            //update text for Update button
-    //         if ("@currentUserRole" == "SUPERVISOR" || "@currentUserRole" == "USER") //change to Submit for users and supervisors
-    //         {
-    //             $('span:contains(Update)').text('Submit');
-    //         }
-    //         else if("@currentUserRole" == "ADMIN"){ //change to Approve for admins
-				// $('span:contains(Update)').text('Approve');
-    //         }
 
             $.ajax({
                 type: 'GET',
@@ -289,7 +314,7 @@
             }
             else{
                 $('<button type="button" class="k-button k-button-md k-button-rectangle k-rounded-md k-button-solid k-button-solid-dark" onclick="CreatePDF()"><span class="k-icon k-i-file-pdf k-button-icon"></span><span class="k-button-text">Generate PDF</span></button>').insertAfter(".k-grid-update");
-                if(currentWorkOrderStatus != "APPROVED" && currentWorkOrderStatus != "REJECTED BY DISTRICT/ENGINEER" && currentWorkOrderStatus != "REJECTED BY SUPERVISOR")
+                if(currentWorkOrderStatus != "APPROVED" && currentWorkOrderStatus != "REJECTED BY DISTRICT" && currentWorkOrderStatus != "REJECTED BY ENGINEER" && currentWorkOrderStatus != "REJECTED BY SUPERVISOR")
                 {
                     $('<button type="button" class="k-button k-button-md k-button-rectangle k-rounded-md k-button-solid k-button-solid-error" onclick="SaveOrUpdate(\'Reject\')"><span class="k-icon k-i-x k-button-icon"></span><span class="k-button-text">Reject</span></button>').insertAfter(".k-grid-update");
                     $('<button type="button" class="k-button k-button-md k-button-rectangle k-rounded-md k-button-solid k-button-solid-success" onclick="SaveOrUpdate(\'Submit\')"><span class="k-icon k-i-check k-button-icon"></span><span class="k-button-text">Approve</span></button>').insertAfter(".k-grid-update");
@@ -308,7 +333,7 @@
         else if("@currentUserRole" == "SUPERVISOR") {
             if(!isNew){
                 $('<button type="button" class="k-button k-button-md k-button-rectangle k-rounded-md k-button-solid k-button-solid-dark" onclick="CreatePDF()"><span class="k-icon k-i-file-pdf k-button-icon"></span><span class="k-button-text">Generate PDF</span></button>').insertAfter(".k-grid-update");
-                if(currentWorkOrderStatus != "APPROVED" && currentWorkOrderStatus != "REJECTED BY DISTRICT/ENGINEER" && currentWorkOrderStatus != "REJECTED BY SUPERVISOR")
+                if(currentWorkOrderStatus != "APPROVED" && currentWorkOrderStatus != "REJECTED BY DISTRICT" && currentWorkOrderStatus != "REJECTED BY ENGINEER" && currentWorkOrderStatus != "REJECTED BY SUPERVISOR")
                     $('<button type="button" class="k-button k-button-md k-button-rectangle k-rounded-md k-button-solid k-button-solid-error" onclick="SaveOrUpdate(\'Reject\')"><span class="k-icon k-i-x k-button-icon"></span><span class="k-button-text">Reject</span></button>').insertAfter(".k-grid-update");
             }
             if(isNew || (currentWorkOrderStatus != "APPROVED" && currentWorkOrderStatus != "RECEIVED" && currentWorkOrderStatus != "INSTALLED")){
@@ -325,7 +350,7 @@
             $('#approvedByDistrictDate').data("kendoDatePicker").enable(false);
         }
         else if ("@currentUserRole" == "ENGINEER") {
-            if(currentWorkOrderStatus != "APPROVED" && currentWorkOrderStatus != "REJECTED BY DISTRICT/ENGINEER" && currentWorkOrderStatus != "REJECTED BY SUPERVISOR")
+            if(currentWorkOrderStatus != "APPROVED" && currentWorkOrderStatus != "REJECTED BY DISTRICT" && currentWorkOrderStatus != "REJECTED BY ENGINEER" && currentWorkOrderStatus != "REJECTED BY SUPERVISOR")
             {
                 $('<button type="button" class="k-button k-button-md k-button-rectangle k-rounded-md k-button-solid k-button-solid-primary" onclick="SaveOrUpdate(\'Submit\')"><span class="k-icon k-i-check k-button-icon"></span><span class="k-button-text">Approve</span></button>').insertAfter(".k-grid-update");
                 $('<button type="button" class="k-button k-button-md k-button-rectangle k-rounded-md k-button-solid k-button-solid-error" onclick="SaveOrUpdate(\'Reject\')"><span class="k-icon k-i-x k-button-icon"></span><span class="k-button-text">Reject</span></button>').insertAfter(".k-grid-update");
@@ -362,7 +387,6 @@
         }
     }
 
-
     // Method that sets if the popup will get closed or not when clicking the update and close buttons **********************************************
     function onEditWindowClose(e){
         //alert("on edit window close: " + closePopup);
@@ -390,7 +414,6 @@
 
     // Sets behaviour of popup fro a new or an existing work order **************************************************************************************
     function SaveOrUpdate(btnType) {
-
 		// Reinitialize the validator
         $("#workOrderForm").kendoValidator({
             validateOnBlur: true, // Ensure validation happens when the user leaves an empty field
@@ -491,11 +514,11 @@
         // Get the current status of the work order selected
         currentWorkOrderStatus = jsonResult[0].Status;
 
-        //disable fields when status is APPROVED for users and supervisors
+        //variable to disable fields when status is APPROVED for users and supervisors
         var isEnabled = !(currentWorkOrderStatus === "APPROVED" &&
         ("@currentUserRole" === "USER" || "@currentUserRole" === "SUPERVISOR"));
 
-        // Set values to UI controls
+        // Set values to UI controls and manage which fields are disabled after approval
         dropdownVal = jsonResult[0].MaterialRequestedFromId;
         var requestedFromDropdown = $("#requestedFrom").data("kendoDropDownList");
         if (requestedFromDropdown) {
@@ -665,7 +688,7 @@
         var itemsNumber = jsonResult[0].Items.length;
         var controlVal;
 
-        //disable fields when status is APPROVED for users and supervisors
+        // variable to disable fields when status is APPROVED for users and supervisors
         var isEnabled = !(currentWorkOrderStatus === "APPROVED" &&
         ("@currentUserRole" === "USER" || "@currentUserRole" === "SUPERVISOR"));
 
@@ -1505,28 +1528,30 @@
                 requireEngineerApproval = true;
         }
 
-        //set status when Save & Submit button is clicked
+        // set status when Save & Submit button is clicked
         if(btnType == "Submit"){
             confirmationMsg = "Approve"
             if(currentWorkOrderStatus == "DRAFT" || currentWorkOrderStatus == "REJECTED BY SUPERVISOR")
                 workOrder.Status = "CREATED";
-			else if(((currentWorkOrderStatus == "CREATED" || currentWorkOrderStatus == "REJECTED BY DISTRICT/ENGINEER") && !requireEngineerApproval) 
+            else if(((currentWorkOrderStatus == "CREATED" || currentWorkOrderStatus == "REJECTED BY DISTRICT" || currentWorkOrderStatus == "REJECTED BY ENGINEER") && !requireEngineerApproval)
             || currentWorkOrderStatus == "AREA ENGINEER")
                 workOrder.Status = "REQUESTED";
-            else if((currentWorkOrderStatus == "CREATED" || currentWorkOrderStatus == "REJECTED BY DISTRICT/ENGINEER") && requireEngineerApproval)
+            else if((currentWorkOrderStatus == "CREATED" || currentWorkOrderStatus == "REJECTED BY DISTRICT" || currentWorkOrderStatus == "REJECTED BY ENGINEER") && requireEngineerApproval)
                 workOrder.Status = "AREA ENGINEER";
             else if(currentWorkOrderStatus == "REQUESTED")
                 workOrder.Status =  "APPROVED";
         }
         else if(btnType == "Reject"){
             confirmationMsg = "Reject"
-            if(currentWorkOrderStatus == "REQUESTED" || currentWorkOrderStatus == "AREA ENGINEER")
-                workOrder.Status = "REJECTED BY DISTRICT/ENGINEER";
+            if(currentWorkOrderStatus == "REQUESTED")
+                workOrder.Status = "REJECTED BY DISTRICT";
+            else if(currentWorkOrderStatus == "AREA ENGINEER")
+                workOrder.Status = "REJECTED BY ENGINEER";
             else if(currentWorkOrderStatus == "CREATED")
                 workOrder.Status = "REJECTED BY SUPERVISOR";
         }
 
-        //update work order
+        // update work order
         var updateWorkOrder = function (){
             $.ajax({
             type: 'POST',
@@ -1547,7 +1572,7 @@
             });
         }
 
-        //ask confirmation before approving/rejecting work order
+        // ask confirmation before approving/rejecting work order
         if(confirmationMsg)
             showConfirmationDialog(`${confirmationMsg} Work Order`, `Are you sure you want to ${confirmationMsg} the work order ?`, updateWorkOrder);
         else
